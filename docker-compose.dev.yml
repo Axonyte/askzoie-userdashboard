@@ -1,0 +1,67 @@
+networks:
+  ask-zoie-net:
+    driver: bridge
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: askzoie-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: chatbotdb
+      POSTGRES_USER: zoie
+      POSTGRES_PASSWORD: zoie
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    networks:
+      - ask-zoie-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zoie -d chatbotdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build: 
+      context: ./server
+      dockerfile: Dockerfile.dev
+    container_name: askzoie-server-dev
+    environment:
+      DATABASE_URL: postgres://zoie:zoie@postgres:5432/chatbotdb
+      PORT: 3000
+      FRONTEND_URL: "http://localhost:5173/"
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ask-zoie-net
+    command: npm run start:dev
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
+    container_name: askzoie-client-dev
+    environment:
+      VITE_API_URL: http://localhost:3000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - server
+    networks:
+      - ask-zoie-net
+    command: npm run dev -- --host 0.0.0.0
+
+volumes:
+  pgdata_dev:
