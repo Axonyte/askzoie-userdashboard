@@ -62,7 +62,6 @@ export class AuthenticationService {
             accountStatus: user.accountStatus,
         };
 
-        user.password = null;
         return {
             ...user,
             accessToken: this.jwtService.sign(payload, {
