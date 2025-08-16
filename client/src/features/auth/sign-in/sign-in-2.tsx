@@ -30,7 +30,7 @@ export default function SignIn2() {
           alt='Vite'
         />
 
-        <div className='relative z-20 mt-auto'>
+        {/* <div className='relative z-20 mt-auto'>
           <blockquote className='space-y-2'>
             <p className='text-lg'>
               &ldquo;This template has saved me countless hours of work and
@@ -39,7 +39,8 @@ export default function SignIn2() {
             </p>
             <footer className='text-sm'>John Doe</footer>
           </blockquote>
-        </div>
+        </div> */}
+        
       </div>
       <div className='lg:p-8'>
         <div className='mx-auto flex w-full flex-col justify-center space-y-2 sm:w-[350px]'>
