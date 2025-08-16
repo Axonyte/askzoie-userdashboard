@@ -106,20 +106,37 @@ export class AuthService {
     /**
      * Register new user
      */
-    async register(userData: RegisterData): Promise<AuthResponse> {
+    register() {
         try {
-            const response = (await api.post('/auth/register', userData)).data
+            const navigate = useNavigate()
+            return useMutation<
+                any,
+                Error,
+                { email: string; password: string },
+                unknown
+            >({
+                mutationFn: async (credentials) => {
+                    const response = (
+                        await api.post('/auth/register', credentials)
+                    ).data
 
-            // Store the token and user data
-            const { setAccessToken, setUser } = useAuthStore.getState().auth
+                    // Store the token and user data
+                    const { setAccessToken, setUser } =
+                        useAuthStore.getState().auth
 
-            setAccessToken(response.accessToken)
-            const user = this.extractUserFromToken(response.accessToken)
-            setUser(user)
+                    setAccessToken(response.accessToken)
+                    const user = this.extractUserFromToken(response.accessToken)
+                    setUser(user)
 
-            toast.success('Registration successful!')
+                    toast.success('Registration successful!')
 
-            return response
+                    return response
+                },
+                onSuccess: () => {
+                    // Navigate to dashboard after successful login
+                    navigate({ to: '/' })
+                },
+            })
         } catch (error: any) {
             const errorMessage =
                 error.response?.data?.message ||

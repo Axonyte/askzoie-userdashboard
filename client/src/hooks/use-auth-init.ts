@@ -8,7 +8,7 @@ import { authService } from '@/features/auth/services/AuthService'
 export const useAuthInit = () => {
   useEffect(() => {
     // Try to initialize user data from existing token
-    const success = authService.initializeFromToken()
+    authService.initializeFromToken()
     
     // if (success) {
     //   console.log('User authenticated from existing token')
