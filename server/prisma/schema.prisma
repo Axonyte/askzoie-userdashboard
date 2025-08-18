@@ -22,6 +22,8 @@ model User {
     accountStatus AccountStatus @default(REVIEWING)
     createdAt     DateTime      @default(now())
     OTP           OTP[]
+    subscription  Subscription?
+    promptQuota   PromptQuota?
 }
 
 model OTP {
@@ -39,4 +41,37 @@ enum AccountStatus {
     APPROVED
     SUSPENDED
     REJECTED
+}
+
+enum Plan {
+    FREE
+    STARTER
+    GROWTH
+    PREMIUM
+    ENTERPRISE
+}
+
+model Subscription {
+    id                 String    @id @default(uuid())
+    userId             String    @unique
+    plan               Plan      @default(FREE)
+    startDate          DateTime  @default(now())
+    endDate            DateTime?
+    canceledAt         DateTime?
+    currentPeriodStart DateTime  @default(now())
+    currentPeriodEnd   DateTime
+    status             String    @default("active")
+
+    user User @relation(fields: [userId], references: [id])
+}
+
+model PromptQuota {
+    id           String   @id @default(uuid())
+    userId       String   @unique
+    monthlyQuota Int // Total allowed messages per month based on plan
+    usedQuota    Int      @default(0) // Messages used this month
+    resetDate    DateTime // Next quota reset date
+    lastUpdated  DateTime @default(now())
+
+    user User @relation(fields: [userId], references: [id])
 }

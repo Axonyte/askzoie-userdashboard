@@ -4,6 +4,7 @@ import {
     Injectable,
     ConflictException,
 } from "@nestjs/common";
+import { SubscriptionService } from "../subscription/subscription.service";
 import { CreateAuthenticationDto } from "./dto/create-authentication.dto";
 import { UpdateAuthenticationDto } from "./dto/update-authentication.dto";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
@@ -24,7 +25,8 @@ export class AuthenticationService {
         private readonly prisma: PrismaService,
         private configService: ConfigService,
         private jwtService: JwtService,
-        private mailerService: MailerService
+        private mailerService: MailerService,
+        private subscriptionService: SubscriptionService
     ) {}
 
     async validateUser(email: string, password: string): Promise<any> {
@@ -91,7 +93,7 @@ export class AuthenticationService {
         // Hash the password
         const hashedPassword = hashPassword(createAuthenticationDto.password);
 
-        // Create the user
+        // Create the user with a transaction to ensure both user and subscription are created
         const user = await this.prisma.user.create({
             data: {
                 email: createAuthenticationDto.email,
@@ -100,6 +102,9 @@ export class AuthenticationService {
                 accountStatus: "REVIEWING", // Default status as per schema
             },
         });
+
+        // Initialize free subscription
+        await this.subscriptionService.initializeFreeSubscription(user.id);
 
         // Generate JWT token
         const payload: TUserPayload = {
@@ -211,8 +216,8 @@ export class AuthenticationService {
                 },
             },
             orderBy: {
-                createdAt: 'desc'
-            }
+                createdAt: "desc",
+            },
         });
 
         if (!otp) {

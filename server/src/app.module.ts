@@ -8,6 +8,7 @@ import { PrismaModule } from "./shared/services/prisma/prisma-module.module";
 import { MailerModule } from "@nestjs-modules/mailer";
 import { join } from "path";
 import { ConfigModule } from "@nestjs/config";
+import { SubscriptionModule } from './modules/subscription/subscription.module';
 
 @Module({
     imports: [
@@ -38,6 +39,7 @@ import { ConfigModule } from "@nestjs/config";
         }),
         AuthenticationModule,
         UserModule,
+        SubscriptionModule,
     ],
     controllers: [AppController],
     providers: [AppService],
