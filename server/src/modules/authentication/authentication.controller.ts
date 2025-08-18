@@ -14,6 +14,8 @@ import {
 import { AuthenticationService } from "./authentication.service";
 import { CreateAuthenticationDto } from "./dto/create-authentication.dto";
 import { UpdateAuthenticationDto } from "./dto/update-authentication.dto";
+import { ForgotPasswordDto } from "./dto/forgot-password.dto";
+import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { AuthEntity } from "./entities/authentication.entity";
 
@@ -38,5 +40,15 @@ export class AuthenticationController {
     async login(@Request() req: any) {
         const user = await this.authenticationService.login(req.user);
         return new AuthEntity(user);
+    }
+
+    @Post('forgot-password')
+    async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+        return this.authenticationService.forgotPassword(forgotPasswordDto);
+    }
+
+    @Post('reset-password')
+    async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+        return this.authenticationService.resetPassword(resetPasswordDto);
     }
 }

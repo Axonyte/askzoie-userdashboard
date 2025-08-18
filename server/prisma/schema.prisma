@@ -21,6 +21,17 @@ model User {
     password      String
     accountStatus AccountStatus @default(REVIEWING)
     createdAt     DateTime      @default(now())
+    OTP           OTP[]
+}
+
+model OTP {
+    id        String   @id @default(uuid())
+    userId    String
+    code      String   @unique
+    createdAt DateTime @default(now())
+    expiresAt DateTime
+
+    user User @relation(fields: [userId], references: [id])
 }
 
 enum AccountStatus {

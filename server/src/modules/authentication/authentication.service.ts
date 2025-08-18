@@ -6,6 +6,8 @@ import {
 } from "@nestjs/common";
 import { CreateAuthenticationDto } from "./dto/create-authentication.dto";
 import { UpdateAuthenticationDto } from "./dto/update-authentication.dto";
+import { ForgotPasswordDto } from "./dto/forgot-password.dto";
+import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { toTitleCase } from "src/shared/utils/toTitleCase";
 import { checkPassword } from "src/shared/utils/checkPassword";
 import { hashPassword } from "src/shared/utils/hashPassword";
@@ -13,13 +15,16 @@ import { PrismaService } from "src/shared/services/prisma/prisma.service";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { TUserPayload } from "../user/types/UserPayload";
+import { MailerService } from "@nestjs-modules/mailer";
+import { randomBytes } from "crypto";
 
 @Injectable()
 export class AuthenticationService {
     constructor(
         private readonly prisma: PrismaService,
         private configService: ConfigService,
-        private jwtService: JwtService
+        private jwtService: JwtService,
+        private mailerService: MailerService
     ) {}
 
     async validateUser(email: string, password: string): Promise<any> {
@@ -133,5 +138,112 @@ export class AuthenticationService {
 
     remove(id: number) {
         return `This action removes a #${id} authentication`;
+    }
+
+    async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
+        const user = await this.prisma.user.findUnique({
+            where: {
+                email: forgotPasswordDto.email,
+            },
+        });
+
+        if (!user) {
+            // For security reasons, always return success even if email doesn't exist
+            return {
+                message:
+                    "If a registered account exists for this email, a password reset code will be sent.",
+            };
+        }
+
+        // Generate OTP
+        const otp = randomBytes(3).toString("hex"); // 6 character hex OTP
+        const expiresAt = new Date();
+        expiresAt.setMinutes(expiresAt.getMinutes() + 30); // OTP expires in 30 minutes
+
+        // Save OTP in database
+        await this.prisma.oTP.create({
+            data: {
+                userId: user.id,
+                code: otp,
+                expiresAt,
+            },
+        });
+
+        // Send email with OTP
+        await this.mailerService.sendMail({
+            to: user.email,
+            subject: "Password Reset Request",
+            template: "./forgot-password.hbs", // you need to create this template
+            context: {
+                name: user.name,
+                otp: otp,
+            },
+        });
+
+        return {
+            message:
+                "If a registered account exists for this email, a password reset code will be sent.",
+        };
+    }
+
+    async resetPassword(resetPasswordDto: ResetPasswordDto) {
+        // Find user by email
+        const user = await this.prisma.user.findUnique({
+            where: {
+                email: resetPasswordDto.email,
+            },
+        });
+
+        if (!user) {
+            throw new HttpException(
+                "Invalid reset attempt",
+                HttpStatus.BAD_REQUEST
+            );
+        }
+
+        // Find valid OTP
+        const otp = await this.prisma.oTP.findFirst({
+            where: {
+                userId: user.id,
+                code: resetPasswordDto.otp,
+                expiresAt: {
+                    gt: new Date(), // OTP hasn't expired
+                },
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
+
+        if (!otp) {
+            throw new HttpException(
+                "Invalid or expired reset code",
+                HttpStatus.BAD_REQUEST
+            );
+        }
+
+        // Hash the new password
+        const hashedPassword = hashPassword(resetPasswordDto.newPassword);
+
+        // Update user's password
+        await this.prisma.user.update({
+            where: {
+                id: user.id,
+            },
+            data: {
+                password: hashedPassword,
+            },
+        });
+
+        // Delete all OTPs for this user as they are no longer needed
+        await this.prisma.oTP.deleteMany({
+            where: {
+                userId: user.id,
+            },
+        });
+
+        return {
+            message: "Password has been reset successfully",
+        };
     }
 }
