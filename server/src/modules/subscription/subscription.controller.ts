@@ -23,4 +23,9 @@ export class SubscriptionController {
             subscribeDto.plan
         );
     }
+
+    @Post("claim-free-prompts")
+    async claimFreePrompts(@UserId() userId: string) {
+        return this.subscriptionService.claimFreePrompts(userId);
+    }
 }

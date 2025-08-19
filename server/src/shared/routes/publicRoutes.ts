@@ -4,4 +4,6 @@ export const PUBLIC_ROUTES = [
     "/auth/forgot-password",
     "/auth/reset-password",
     "/webhook",
+    "/bot/refresh-access-token",
+    "/bot/test",
 ];

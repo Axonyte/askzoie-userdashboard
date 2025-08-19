@@ -24,6 +24,22 @@ model User {
     OTP           OTP[]
     subscription  Subscription?
     promptQuota   PromptQuota?
+    botConfigs    BotConfig[]
+}
+
+model BotConfig {
+    id          String   @id @default(uuid())
+    userId      String
+    name        Bot
+    theme       String
+    description String?
+    // model       String // e.g., "gpt-3.5-turbo"
+    // temperature Float    @default(0.7)
+    // maxTokens   Int      @default(1000)
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+
+    user User @relation(fields: [userId], references: [id])
 }
 
 model OTP {
@@ -34,21 +50,6 @@ model OTP {
     expiresAt DateTime
 
     user User @relation(fields: [userId], references: [id])
-}
-
-enum AccountStatus {
-    REVIEWING
-    APPROVED
-    SUSPENDED
-    REJECTED
-}
-
-enum Plan {
-    FREE
-    STARTER
-    GROWTH
-    PREMIUM
-    ENTERPRISE
 }
 
 model Subscription {
@@ -74,4 +75,25 @@ model PromptQuota {
     lastUpdated  DateTime @default(now())
 
     user User @relation(fields: [userId], references: [id])
+}
+
+enum AccountStatus {
+    REVIEWING
+    APPROVED
+    SUSPENDED
+    REJECTED
+}
+
+enum Plan {
+    FREE
+    STARTER
+    GROWTH
+    PREMIUM
+    ENTERPRISE
+}
+
+enum Bot {
+    ZOIE
+    OPTIMUS
+    JARVIS
 }

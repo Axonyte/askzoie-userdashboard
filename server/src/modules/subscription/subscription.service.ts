@@ -101,12 +101,80 @@ export class SubscriptionService {
 
     async initializeFreeSubscription(userId: string) {
         try {
-            return await this.subscribeToPlan(userId, "FREE");
+            const nextPeriodEnd = this.calculateNextPeriodEnd();
+
+            return await this.prisma.subscription.upsert({
+                where: { userId },
+                update: {
+                    plan: Plan.FREE,
+                    currentPeriodStart: new Date(),
+                    currentPeriodEnd: nextPeriodEnd,
+                    status: "active",
+                    canceledAt: null,
+                },
+                create: {
+                    userId,
+                    plan: Plan.FREE,
+                    currentPeriodEnd: nextPeriodEnd,
+                },
+            });
         } catch (error) {
             console.log(error);
             throw new BadRequestException(
                 "Failed to initialize free subscription"
             );
         }
+    }
+
+    async claimFreePrompts(userId: string) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            include: {
+                promptQuota: true,
+                subscription: true,
+            },
+        });
+
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
+
+        const now = new Date();
+
+        // ✅ Determine effective plan
+        const activePlan =
+            user.subscription && user.subscription.currentPeriodEnd > now
+                ? user.subscription.plan
+                : "FREE";
+
+        // If user has no prompt quota, create one
+        if (!user.promptQuota) {
+            return await this.prisma.promptQuota.create({
+                data: {
+                    userId,
+                    monthlyQuota: PLAN_QUOTAS[activePlan],
+                    usedQuota: 0,
+                    resetDate: this.calculateNextPeriodEnd(),
+                    lastUpdated: now,
+                },
+            });
+        }
+
+        // Check if it's time to reset the quota
+        if (user.promptQuota.resetDate <= now) {
+            return await this.prisma.promptQuota.update({
+                where: { userId },
+                data: {
+                    monthlyQuota: PLAN_QUOTAS[activePlan],
+                    usedQuota: 0,
+                    resetDate: this.calculateNextPeriodEnd(),
+                    lastUpdated: now,
+                },
+            });
+        }
+
+        throw new BadRequestException(
+            "Cannot claim prompts yet. Please wait until your next reset date."
+        );
     }
 }
