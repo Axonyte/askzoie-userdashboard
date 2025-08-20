@@ -24,6 +24,11 @@ export class SubscriptionController {
         );
     }
 
+    @Get("usage")
+    async getUserUsage(@UserId() userId: string) {
+        return this.subscriptionService.getUserUsage(userId);
+    }
+    
     @Post("claim-free-prompts")
     async claimFreePrompts(@UserId() userId: string) {
         return this.subscriptionService.claimFreePrompts(userId);

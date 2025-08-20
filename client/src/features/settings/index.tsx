@@ -5,6 +5,7 @@ import {
   IconPalette,
   IconTool,
   IconUser,
+  IconChartBar
 } from '@tabler/icons-react'
 import { Separator } from '@/components/ui/separator'
 import { Header } from '@/components/layout/header'
@@ -59,6 +60,11 @@ const sidebarNavItems = [
     title: 'Account',
     icon: <IconTool size={18} />,
     href: '/settings/account',
+  },
+  {
+    title: 'Usage',
+    icon: <IconChartBar size={18} />,
+    href: '/settings/usage',
   },
   {
     title: 'Appearance',

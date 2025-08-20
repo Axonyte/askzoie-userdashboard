@@ -126,6 +126,25 @@ export class SubscriptionService {
         }
     }
 
+    async getUserUsage(userId: string) {
+        const quota = await this.prisma.promptQuota.findUnique({
+            where: { userId },
+        });
+        if (!quota) {
+            return {
+                monthlyQuota: 0,
+                usedQuota: 0,
+                resetDate: undefined,
+                newAccount: true,
+            };
+        }
+        return {
+            monthlyQuota: quota.monthlyQuota,
+            usedQuota: quota.usedQuota,
+            resetDate: quota.resetDate,
+        };
+    }
+
     async claimFreePrompts(userId: string) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
