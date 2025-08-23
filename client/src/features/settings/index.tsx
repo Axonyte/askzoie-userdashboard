@@ -67,6 +67,11 @@ const sidebarNavItems = [
     href: '/settings/usage',
   },
   {
+    title: 'Bots',
+    icon: <IconChartBar size={18} />,
+    href: '/settings/bots',
+  },
+  {
     title: 'Appearance',
     icon: <IconPalette size={18} />,
     href: '/settings/appearance',

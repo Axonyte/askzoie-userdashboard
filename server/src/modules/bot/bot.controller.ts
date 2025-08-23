@@ -18,6 +18,11 @@ export class BotController {
         return this.botService.saveBotConfiguration(userId, dto);
     }
 
+    @Get("available-bots")
+    fetchAvailableBots() {
+        return this.botService.fetchAvailableBots();
+    }
+
     @Post("refresh-access-token")
     async refreshAccessToken(@Body("refreshToken") refreshToken: string) {
         return await this.botService.refreshAccessToken(refreshToken);

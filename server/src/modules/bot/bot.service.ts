@@ -41,6 +41,10 @@ export class BotService {
         };
     }
 
+    async  fetchAvailableBots(){
+        // await this.prisma.bo
+    }
+
     async refreshAccessToken(refreshToken: string) {
         try {
             // Verify the refresh token
