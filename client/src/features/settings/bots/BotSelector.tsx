@@ -229,7 +229,7 @@ export default function BotsPage() {
                                         <Sparkles className='h-4 w-4' />
                                         Key Features
                                     </h3>
-                                    <div className='flex h-16 flex-wrap content-start gap-2'>
+                                    <div className='flex h-16 flex-wrap content-start gap-2 w-[300px]'>
                                         {currentBot.features.map((feature) => (
                                             <Badge
                                                 key={feature}
