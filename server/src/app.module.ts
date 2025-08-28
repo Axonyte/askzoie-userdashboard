@@ -10,6 +10,7 @@ import { join } from "path";
 import { ConfigModule } from "@nestjs/config";
 import { SubscriptionModule } from "./modules/subscription/subscription.module";
 import { BotModule } from "./modules/bot/bot.module";
+import { PaypalModule } from './modules/paypal/paypal.module';
 
 @Module({
     imports: [
@@ -42,6 +43,7 @@ import { BotModule } from "./modules/bot/bot.module";
         UserModule,
         SubscriptionModule,
         BotModule,
+        PaypalModule,
     ],
     controllers: [AppController],
     providers: [AppService],
