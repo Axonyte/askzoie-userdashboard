@@ -15,16 +15,17 @@ datasource db {
 }
 
 model User {
-    id            String        @id @default(uuid())
-    email         String        @unique
-    name          String
-    password      String
-    accountStatus AccountStatus @default(REVIEWING)
-    createdAt     DateTime      @default(now())
-    OTP           OTP[]
-    subscription  Subscription?
-    promptQuota   PromptQuota?
-    botPersonas   BotPersona[]
+    id             String           @id @default(uuid())
+    email          String           @unique
+    name           String
+    password       String
+    accountStatus  AccountStatus    @default(REVIEWING)
+    createdAt      DateTime         @default(now())
+    OTP            OTP[]
+    subscription   Subscription?
+    promptQuota    PromptQuota?
+    botPersonas    BotPersona[]
+    AllowedDomains AllowedDomains[]
 }
 
 model BotPersona {
@@ -69,7 +70,6 @@ model BotProfile {
     persona BotPersona @relation(fields: [personaId], references: [id])
 }
 
-
 model OTP {
     id        String   @id @default(uuid())
     userId    String
@@ -103,6 +103,14 @@ model PromptQuota {
     lastUpdated  DateTime @default(now())
 
     user User @relation(fields: [userId], references: [id])
+}
+
+model AllowedDomains {
+    origin      String   @id
+    description String?
+    createdAt   DateTime @default(now())
+    userId      String
+    user        User     @relation(fields: [userId], references: [id])
 }
 
 enum AccountStatus {

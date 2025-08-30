@@ -10,7 +10,9 @@ import { join } from "path";
 import { ConfigModule } from "@nestjs/config";
 import { SubscriptionModule } from "./modules/subscription/subscription.module";
 import { BotModule } from "./modules/bot/bot.module";
-import { PaypalModule } from './modules/paypal/paypal.module';
+import { PaypalModule } from "./modules/paypal/paypal.module";
+import { AllowedDomainsService } from './shared/services/allowed-domains/allowed-domains.service';
+import { ProfileModule } from './modules/profile/profile.module';
 
 @Module({
     imports: [
@@ -44,8 +46,9 @@ import { PaypalModule } from './modules/paypal/paypal.module';
         SubscriptionModule,
         BotModule,
         PaypalModule,
+        ProfileModule,
     ],
     controllers: [AppController],
-    providers: [AppService],
+    providers: [AppService, AllowedDomainsService],
 })
 export class AppModule {}

@@ -5,6 +5,7 @@ import { json } from "express";
 import { BadRequestException, ValidationPipe } from "@nestjs/common";
 import { AuthGuard } from "./guards/auth.guard";
 import { ConfigService } from "@nestjs/config";
+import { AllowedDomainsService } from "./shared/services/allowed-domains/allowed-domains.service";
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule, {
@@ -30,9 +31,12 @@ async function bootstrap() {
         })
     );
 
+    const allowedDomainsService = app.get(AllowedDomainsService);
+    const origins = await allowedDomainsService.getAllEnabledOrigins();
+
     app.enableCors({
         allowedHeaders: ["content-type", "authorization", "X-Bot-Profile"],
-        origin: ["http://localhost:5173"],
+        origin: [process.env.FRONTEND_URL, ...origins],
         credentials: true,
     });
 
