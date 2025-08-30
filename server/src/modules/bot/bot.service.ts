@@ -9,13 +9,15 @@ import { SaveBotProfileDto } from "./dto/save-bot-config.dto";
 import { ConfigService } from "@nestjs/config";
 import { TBotPayload } from "./types/BotPayload";
 import { AddPersonaDto } from "./dto/add-persona.dto";
+import { R2storageService } from "src/shared/services/r2storage/r2storage.service";
 
 @Injectable()
 export class BotService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly jwtService: JwtService,
-        private configService: ConfigService
+        private configService: ConfigService,
+        private r2StorageService: R2storageService
     ) {}
 
     async addBotPersona(dto: AddPersonaDto) {
@@ -35,13 +37,28 @@ export class BotService {
         });
     }
 
-    async saveBotProfile(userId: string, dto: SaveBotProfileDto) {
+    async saveBotProfile(
+        userId: string,
+        dto: SaveBotProfileDto,
+        file?: Express.Multer.File
+    ) {
         // Make sure persona exists
         const persona = await this.prisma.botPersona.findUnique({
             where: { id: dto.personaId },
         });
         if (!persona) {
             throw new NotFoundException("Persona not found");
+        }
+
+        let avatarUrl: string | undefined = undefined;
+
+        console.log(file?.mimetype)
+        if (file) {
+            avatarUrl = `/bot-avatars/${userId}/${dto.name}`;
+            await this.r2StorageService.uploadDocument(file, {
+                folder: `bot-avatars/${userId}`,
+                fileName: dto.name!,
+            });
         }
 
         const botProfile = await this.prisma.botProfile.create({
@@ -52,7 +69,7 @@ export class BotService {
                 customGreeting: dto.customGreeting,
                 customFallback: dto.customFallback,
                 tone: dto.tone,
-                avatarUrl: dto.avatarUrl,
+                avatarUrl,
                 primaryLanguage: dto.primaryLanguage,
                 allowedTopics: dto.allowedTopics ?? [],
                 blockedTopics: dto.blockedTopics ?? [],

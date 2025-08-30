@@ -18,15 +18,31 @@ interface BotConfigFormProps {
     botId: string
     botName: string
     onClose: () => void
-    defaultValues?: Omit<
-        BotProfile,
-        'createdAt' | 'updatedAt' | 'knowledgeSources'
-    >
+    defaultValues?: BotProfileForm
 }
 
 interface SaveBotResponse {
     botProfile: any
     refreshToken: string
+}
+
+// bot-profile-form.dto.ts
+export type BotProfileForm = {
+    personaId: string
+    name: string
+    customGreeting?: string
+    customFallback?: string
+    tone?: string
+    primaryLanguage?: string
+
+    // These will come as comma-separated strings
+    allowedTopics?: string
+    blockedTopics?: string
+
+    responseLength?: string // because form-data sends everything as string
+
+    // File input
+    file?: any
 }
 
 export function BotConfigForm({
@@ -35,7 +51,7 @@ export function BotConfigForm({
     onClose,
     defaultValues,
 }: BotConfigFormProps) {
-    const { register, handleSubmit, control } = useForm<BotProfile>({
+    const { register, handleSubmit, control } = useForm<BotProfileForm>({
         defaultValues: defaultValues || {
             personaId: botId,
             name: botName,
@@ -44,15 +60,46 @@ export function BotConfigForm({
     })
 
     const mutation = useMutation({
-        mutationFn: async (data: BotProfile): Promise<SaveBotResponse> => {
-            const res = await api.post('/bot/save', data)
+        mutationFn: async (data: BotProfileForm): Promise<SaveBotResponse> => {
+            const formData = new FormData()
+
+            // Append scalar values
+            formData.append('personaId', data.personaId)
+            if (data.name) formData.append('name', data.name)
+            if (data.customGreeting)
+                formData.append('customGreeting', data.customGreeting)
+            if (data.customFallback)
+                formData.append('customFallback', data.customFallback)
+            if (data.tone) formData.append('tone', data.tone)
+            if (data.primaryLanguage)
+                formData.append('primaryLanguage', data.primaryLanguage)
+            if (data.responseLength)
+                formData.append('responseLength', data.responseLength)
+
+            // Comma separated topics
+            if (data.allowedTopics && data.allowedTopics.length > 0) {
+                formData.append('allowedTopics', data.allowedTopics)
+            }
+            if (data.blockedTopics && data.blockedTopics.length > 0) {
+                formData.append('blockedTopics', data.blockedTopics)
+            }
+
+            // Append file if available
+            if ((data as any).file && (data as any).file.length > 0) {
+                formData.append('file', (data as any).file[0]) // grab the File from FileList
+            }
+
+            const res = await api.post('/bot/save', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            })
+
             return res.data
         },
         onSuccess: (data, variables) => {
             navigator.clipboard.writeText(data.refreshToken).then(() => {
                 toast.success(`${variables.name} token copied to clipboard!`, {
                     description:
-                        'You can now use this token to access your bot.',
+                        'You can now use this token to embed your bot.',
                 })
             })
             onClose()
@@ -69,8 +116,6 @@ export function BotConfigForm({
         mutation.mutate({
             ...values,
             personaId: defaultValues?.personaId!,
-            allowedTopics: values.allowedTopics.split(','),
-            blockedTopics: values.blockedTopics.split(','),
         })
     }
 
@@ -89,7 +134,7 @@ export function BotConfigForm({
                 placeholder='Tone (e.g. casual, friendly)'
                 {...register('tone')}
             />
-            <Input placeholder='Avatar URL' {...register('avatarUrl')} />
+            <Input type='file' accept='image/*' {...register('file')} />{' '}
             <Input
                 placeholder='Primary Language (e.g. en)'
                 {...register('primaryLanguage')}
@@ -114,7 +159,11 @@ export function BotConfigForm({
                 name='responseLength'
                 control={control}
                 render={({ field }) => (
-                    <Select {...field}>
+                    <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        value={field.value}
+                    >
                         <SelectTrigger>
                             <SelectValue placeholder='Response Length' />
                         </SelectTrigger>
@@ -126,16 +175,6 @@ export function BotConfigForm({
                     </Select>
                 )}
             />
-            {/* <Textarea
-                placeholder='Knowledge Sources JSON'
-                {...register('knowledgeSources')}
-                onChange={(e) => {
-                    try {
-                        const parsed = JSON.parse(e.target.value)
-                        e.target.value = JSON.stringify(parsed)
-                    } catch {}
-                }}
-            /> */}
             <Button type='submit' disabled={mutation.isPending}>
                 {mutation.isPending ? 'Saving...' : 'Save & Get Token'}
             </Button>

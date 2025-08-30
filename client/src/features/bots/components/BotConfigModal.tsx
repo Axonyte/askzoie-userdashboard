@@ -5,7 +5,6 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog'
 import { BotPersona } from '../types/botPersona'
-import { BotProfile } from '../types/botProfile'
 import { BotConfigForm } from './BotConfigForm'
 
 interface BotConfigDialogProps {
@@ -17,15 +16,15 @@ interface BotConfigDialogProps {
 export function BotConfigModal({ open, onClose, bot }: BotConfigDialogProps) {
     if (!bot) return null
 
-    const defaultValues: Omit<BotProfile, 'createdAt' | 'updatedAt'> = {
+    const defaultValues = {
         id: bot.id,
         personaId: bot.id,
         userId: '',
         name: bot.name,
         tone: bot.defaultTone,
         primaryLanguage: bot.language ?? 'en',
-        allowedTopics: [],
-        blockedTopics: [],
+        allowedTopics: "",
+        blockedTopics: "",
         responseLength: 'MEDIUM',
         // knowledgeSources: {}, // default empty
         customGreeting: bot.defaultGreeting,

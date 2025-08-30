@@ -29,10 +29,6 @@ export class SaveBotProfileDto {
 
     @IsOptional()
     @IsString()
-    avatarUrl?: string;
-
-    @IsOptional()
-    @IsString()
     primaryLanguage?: string;
 
     @IsOptional()

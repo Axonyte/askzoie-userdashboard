@@ -1,11 +1,22 @@
 // bot.controller.ts
-import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
+import {
+    Body,
+    Controller,
+    Get,
+    Param,
+    Post,
+    UploadedFile,
+    UseGuards,
+    UseInterceptors,
+} from "@nestjs/common";
 import { BotService } from "./bot.service";
 import { UserId } from "src/decorators/userId.decorator";
 import { SaveBotProfileDto } from "./dto/save-bot-config.dto";
 import { BotGuard } from "src/guards/bot.guard";
 import { BotProfileId } from "src/decorators/bot-profile-id.decorator";
 import { AddPersonaDto } from "./dto/add-persona.dto";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { multerImageOptions } from "src/config/multer/MulterConfig";
 
 @Controller("bot")
 export class BotController {
@@ -17,8 +28,33 @@ export class BotController {
     }
 
     @Post("save")
-    saveBotProfile(@UserId() userId: string, @Body() dto: SaveBotProfileDto) {
-        return this.botService.saveBotProfile(userId, dto);
+    @UseInterceptors(FileInterceptor("file", multerImageOptions))
+    async saveBotProfile(
+        @UserId() userId: string,
+        @UploadedFile() file: Express.Multer.File,
+        @Body() body: any // <-- raw form-data body
+    ) {
+        // Parse fields from form-data
+        const dto: SaveBotProfileDto = {
+            personaId: body.personaId,
+            name: body.name,
+            customGreeting: body.customGreeting,
+            customFallback: body.customFallback,
+            tone: body.tone,
+            primaryLanguage: body.primaryLanguage,
+            allowedTopics: body.allowedTopics
+                ? body.allowedTopics.split(",").map((t: string) => t.trim())
+                : undefined,
+            blockedTopics: body.blockedTopics
+                ? body.blockedTopics.split(",").map((t: string) => t.trim())
+                : undefined,
+            responseLength: body.responseLength as
+                | "SHORT"
+                | "MEDIUM"
+                | "DETAILED",
+        };
+
+        return this.botService.saveBotProfile(userId, dto, file);
     }
 
     @Get("available-personas")
