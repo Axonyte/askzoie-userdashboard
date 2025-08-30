@@ -1,14 +1,57 @@
-import { IsEnum, IsOptional, IsString } from "class-validator";
-import { Bot } from "generated/prisma";
+import {
+    IsString,
+    IsOptional,
+    IsArray,
+    IsObject,
+    IsUUID,
+    IsIn,
+} from "class-validator";
 
-export class SaveBotConfigDto {
-    @IsEnum(Bot)
-    name: Bot;
-
-    @IsString()
-    theme: string;
+export class SaveBotProfileDto {
+    @IsUUID()
+    personaId: string;
 
     @IsOptional()
     @IsString()
-    description?: string;
+    name?: string;
+
+    @IsOptional()
+    @IsString()
+    customGreeting?: string;
+
+    @IsOptional()
+    @IsString()
+    customFallback?: string;
+
+    @IsOptional()
+    @IsString()
+    tone?: string;
+
+    @IsOptional()
+    @IsString()
+    avatarUrl?: string;
+
+    @IsOptional()
+    @IsString()
+    primaryLanguage?: string;
+
+    @IsOptional()
+    @IsArray()
+    allowedTopics?: string[];
+
+    @IsOptional()
+    @IsArray()
+    blockedTopics?: string[];
+
+    @IsOptional()
+    @IsIn(["SHORT", "MEDIUM", "DETAILED"])
+    responseLength?: "SHORT" | "MEDIUM" | "DETAILED";
+
+    @IsOptional()
+    @IsObject()
+    knowledgeSources?: Record<string, any>;
+
+    @IsOptional()
+    @IsString()
+    embeddingToken?: string; // or let service generate JWT instead
 }

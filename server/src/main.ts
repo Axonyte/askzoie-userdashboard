@@ -2,7 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./exceptions/HttpExceptionFilter";
 import { json } from "express";
-import { ValidationPipe } from "@nestjs/common";
+import { BadRequestException, ValidationPipe } from "@nestjs/common";
 import { AuthGuard } from "./guards/auth.guard";
 import { ConfigService } from "@nestjs/config";
 
@@ -31,7 +31,7 @@ async function bootstrap() {
     );
 
     app.enableCors({
-        allowedHeaders: ["content-type", "authorization"],
+        allowedHeaders: ["content-type", "authorization", "X-Bot-Profile"],
         origin: ["http://localhost:5173"],
         credentials: true,
     });

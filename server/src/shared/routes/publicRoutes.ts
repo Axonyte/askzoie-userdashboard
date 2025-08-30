@@ -5,5 +5,4 @@ export const PUBLIC_ROUTES = [
     "/auth/reset-password",
     "/webhook",
     "/bot/refresh-access-token",
-    "/bot/test",
 ];

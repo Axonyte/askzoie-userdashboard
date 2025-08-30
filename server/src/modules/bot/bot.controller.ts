@@ -1,26 +1,37 @@
 // bot.controller.ts
-import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
 import { BotService } from "./bot.service";
 import { UserId } from "src/decorators/userId.decorator";
-import { SaveBotConfigDto } from "./dto/save-bot-config.dto";
+import { SaveBotProfileDto } from "./dto/save-bot-config.dto";
 import { BotGuard } from "src/guards/bot.guard";
-import { BotConfigId } from "src/decorators/bot-config-id.decorator";
+import { BotProfileId } from "src/decorators/bot-profile-id.decorator";
+import { AddPersonaDto } from "./dto/add-persona.dto";
 
 @Controller("bot")
 export class BotController {
     constructor(private readonly botService: BotService) {}
 
-    @Post("save")
-    saveBotConfiguration(
-        @UserId() userId: string,
-        @Body() dto: SaveBotConfigDto
-    ) {
-        return this.botService.saveBotConfiguration(userId, dto);
+    @Post("add-persona")
+    addBotPersona(@Body() dto: AddPersonaDto) {
+        return this.botService.addBotPersona(dto);
     }
 
-    @Get("available-bots")
-    fetchAvailableBots() {
-        return this.botService.fetchAvailableBots();
+    @Post("save")
+    saveBotProfile(@UserId() userId: string, @Body() dto: SaveBotProfileDto) {
+        return this.botService.saveBotProfile(userId, dto);
+    }
+
+    @Get("available-personas")
+    fetchAvailablePersonas() {
+        return this.botService.fetchAvailablePersonas();
+    }
+
+    @Get("refresh-token/:botProfileId")
+    async getRefreshToken(
+        @UserId() userId: string,
+        @Param("botProfileId") botProfileId: string
+    ) {
+        return this.botService.generateRefreshToken(userId, botProfileId);
     }
 
     @Post("refresh-access-token")
@@ -30,8 +41,8 @@ export class BotController {
 
     @Get("test")
     @UseGuards(BotGuard)
-    async test(@BotConfigId() id: string) {
-        console.log(id)
+    async test(@BotProfileId() id: string) {
+        console.log(id);
         return;
     }
 }

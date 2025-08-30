@@ -1,9 +1,14 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import {
+    Injectable,
+    NotFoundException,
+    UnauthorizedException,
+} from "@nestjs/common";
 import { PrismaService } from "src/shared/services/prisma/prisma.service";
 import { JwtService } from "@nestjs/jwt";
-import { SaveBotConfigDto } from "./dto/save-bot-config.dto";
+import { SaveBotProfileDto } from "./dto/save-bot-config.dto";
 import { ConfigService } from "@nestjs/config";
 import { TBotPayload } from "./types/BotPayload";
+import { AddPersonaDto } from "./dto/add-persona.dto";
 
 @Injectable()
 export class BotService {
@@ -13,36 +18,107 @@ export class BotService {
         private configService: ConfigService
     ) {}
 
-    async saveBotConfiguration(userId: string, dto: SaveBotConfigDto) {
-        // Save bot config
-        const botConfig = await this.prisma.botConfig.create({
+    async addBotPersona(dto: AddPersonaDto) {
+        return await this.prisma.botPersona.create({
+            data: {
+                name: dto.name,
+                description: dto.description,
+                gender: dto.gender,
+                systemPrompt: dto.systemPrompt,
+                defaultTone: dto.defaultTone,
+                defaultDomain: dto.defaultDomain,
+                defaultGreeting: dto.defaultGreeting,
+                defaultFallback: dto.defaultFallback,
+                avatarUrl: dto.avatarUrl,
+                language: dto.language ?? "en",
+            },
+        });
+    }
+
+    async saveBotProfile(userId: string, dto: SaveBotProfileDto) {
+        // Make sure persona exists
+        const persona = await this.prisma.botPersona.findUnique({
+            where: { id: dto.personaId },
+        });
+        if (!persona) {
+            throw new NotFoundException("Persona not found");
+        }
+
+        const botProfile = await this.prisma.botProfile.create({
             data: {
                 userId,
+                personaId: dto.personaId,
                 name: dto.name,
-                theme: dto.theme,
-                description: dto.description,
+                customGreeting: dto.customGreeting,
+                customFallback: dto.customFallback,
+                tone: dto.tone,
+                avatarUrl: dto.avatarUrl,
+                primaryLanguage: dto.primaryLanguage,
+                allowedTopics: dto.allowedTopics ?? [],
+                blockedTopics: dto.blockedTopics ?? [],
+                responseLength: dto.responseLength,
+                knowledgeSources: dto.knowledgeSources ?? {},
             },
         });
 
         // Create refresh token containing botConfig.id
         const refreshToken = this.jwtService.sign(
             {
-                botConfigId: botConfig.id,
+                botProfileId: botProfile.id,
                 userId,
             },
             {
-                secret: this.configService.get<string>("JWT_SECRET"),
+                secret: this.configService.get("JWT_SECRET"),
             }
         );
 
         return {
-            botConfig,
+            botProfile,
             refreshToken,
         };
     }
 
-    async  fetchAvailableBots(){
-        // await this.prisma.bo
+    async fetchAvailablePersonas() {
+        return this.prisma.botPersona.findMany({
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                gender: true,
+                avatarUrl: true,
+                defaultTone: true,
+                defaultDomain: true,
+                language: true,
+            },
+        });
+    }
+
+    async generateRefreshToken(userId: string, botProfileId: string) {
+        const botProfile = await this.prisma.botProfile.findUnique({
+            where: { id: botProfileId },
+        });
+
+        if (!botProfile) {
+            throw new NotFoundException("Bot profile not found");
+        }
+
+        if (botProfile.userId !== userId) {
+            throw new UnauthorizedException(
+                "This profile does not belong to the user"
+            );
+        }
+
+        const refreshToken = this.jwtService.sign(
+            {
+                botProfileId: botProfile.id,
+                userId,
+            },
+            {
+                secret: this.configService.get("JWT_SECRET"),
+            }
+        );
+
+        return { refreshToken };
     }
 
     async refreshAccessToken(refreshToken: string) {
@@ -53,24 +129,18 @@ export class BotService {
             });
 
             // Extract botConfigId and userId from the refresh token
-            const { botConfigId, userId } = decoded;
+            const { botProfileId, userId } = decoded;
 
-            if (!botConfigId || !userId) {
+            if (!botProfileId || !userId) {
                 throw new UnauthorizedException(
                     "Invalid refresh token payload"
                 );
             }
 
             // Fetch the bot configuration from database
-            const botConfig = await this.prisma.botConfig.findUnique({
+            const botConfig = await this.prisma.botProfile.findUnique({
                 where: {
-                    id: botConfigId,
-                },
-                select: {
-                    id: true,
-                    userId: true,
-                    name: true, // This is the Bot enum
-                    theme: true,
+                    id: botProfileId,
                 },
             });
 
@@ -85,11 +155,31 @@ export class BotService {
                 );
             }
 
+            // Build JWT payload aligned with TBotPayload
             const payload: TBotPayload = {
+                profileId: botConfig.id, // ✅ bot instance/profile id
                 userId: botConfig.userId,
-                bot: botConfig.name, // Bot enum value (ZOIE, OPTIMUS, JARVIS)
-                colorScheme: botConfig.theme,
-                configId: botConfig.id,
+                personaId: botConfig.personaId, // ✅ link to base persona
+
+                // Identity
+                name: botConfig.name ?? undefined,
+                avatarUrl: botConfig.avatarUrl ?? undefined,
+
+                // Greetings & fallback
+                customGreeting: botConfig.customGreeting ?? undefined,
+                customFallback: botConfig.customFallback ?? undefined,
+
+                // Style
+                tone: botConfig.tone ?? undefined,
+                responseLength: botConfig.responseLength ?? undefined,
+                primaryLanguage: botConfig.primaryLanguage ?? undefined,
+
+                // Knowledge & topics
+                allowedTopics: botConfig.allowedTopics ?? [],
+                blockedTopics: botConfig.blockedTopics ?? [],
+                knowledgeSources: botConfig.knowledgeSources ?? ({} as any),
+
+                // UI / embedding options
             };
 
             // Create access token with 30 minutes expiry

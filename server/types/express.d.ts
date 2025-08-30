@@ -5,7 +5,7 @@ declare global {
   namespace Express {
     interface Request {
       user?: TUserPayload;
-      botConfig?: TBotPayload;
+      botProfile?: TBotPayload;
     }
   }
 }

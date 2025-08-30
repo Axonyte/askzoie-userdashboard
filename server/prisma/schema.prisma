@@ -24,23 +24,51 @@ model User {
     OTP           OTP[]
     subscription  Subscription?
     promptQuota   PromptQuota?
-    botConfigs    BotConfig[]
+    botPersonas   BotPersona[]
 }
 
-model BotConfig {
-    id          String   @id @default(uuid())
-    userId      String
-    name        Bot
-    theme       String
-    description String?
-    // model       String // e.g., "gpt-3.5-turbo"
-    // temperature Float    @default(0.7)
-    // maxTokens   Int      @default(1000)
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+model BotPersona {
+    id              String   @id @default(uuid())
+    name            String   @db.VarChar(100) // e.g. "Tech Expert"
+    description     String?  @db.Text
+    gender          String?  @db.VarChar(20) // e.g. "male", "female", "neutral"
+    systemPrompt    String?  @db.Text // base system instruction for LLM
+    defaultTone     String?  @db.VarChar(50) // "formal", "casual"
+    defaultDomain   String?  @db.VarChar(100) // "Technology", "Education"
+    defaultGreeting String?  @db.Text
+    defaultFallback String?  @db.Text
+    avatarUrl       String?  @db.Text
+    language        String   @default("en") @db.VarChar(20)
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
 
-    user User @relation(fields: [userId], references: [id])
+    // Relations
+    botProfiles BotProfile[]
+    User        User?        @relation(fields: [userId], references: [id])
+    userId      String?
 }
+
+model BotProfile {
+    id               String          @id @default(uuid())
+    userId           String // FK to your Users table
+    personaId        String
+    name             String?         @db.VarChar(100) // user-customized bot name
+    customGreeting   String?         @db.Text
+    customFallback   String?         @db.Text
+    tone             String?         @db.VarChar(50)
+    avatarUrl        String?         @db.Text
+    primaryLanguage  String?         @db.VarChar(20)
+    allowedTopics    String[] // topics to allow
+    blockedTopics    String[] // topics to block
+    responseLength   ResponseLength? @default(MEDIUM)
+    knowledgeSources Json? // external sources {docs:[], links:[]}
+    createdAt        DateTime        @default(now())
+    updatedAt        DateTime        @updatedAt
+
+    // Relations
+    persona BotPersona @relation(fields: [personaId], references: [id])
+}
+
 
 model OTP {
     id        String   @id @default(uuid())
@@ -90,6 +118,12 @@ enum Plan {
     GROWTH
     PREMIUM
     ENTERPRISE
+}
+
+enum ResponseLength {
+    SHORT // concise answers, 1–2 sentences
+    MEDIUM // balanced, a few sentences
+    DETAILED // long, explanatory responses
 }
 
 enum Bot {
