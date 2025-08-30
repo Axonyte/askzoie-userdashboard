@@ -57,7 +57,7 @@ export class BotService {
                 allowedTopics: dto.allowedTopics ?? [],
                 blockedTopics: dto.blockedTopics ?? [],
                 responseLength: dto.responseLength,
-                knowledgeSources: dto.knowledgeSources ?? {},
+                // knowledgeSources: dto.knowledgeSources ?? {},
             },
         });
 
@@ -80,16 +80,16 @@ export class BotService {
 
     async fetchAvailablePersonas() {
         return this.prisma.botPersona.findMany({
-            select: {
-                id: true,
-                name: true,
-                description: true,
-                gender: true,
-                avatarUrl: true,
-                defaultTone: true,
-                defaultDomain: true,
-                language: true,
-            },
+            // select: {
+            //     id: true,
+            //     name: true,
+            //     description: true,
+            //     gender: true,
+            //     avatarUrl: true,
+            //     defaultTone: true,
+            //     defaultDomain: true,
+            //     language: true,
+            // },
         });
     }
 

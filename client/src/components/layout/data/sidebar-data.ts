@@ -57,6 +57,16 @@ export const sidebarData: SidebarData = {
           url: '/',
           icon: IconLayoutDashboard,
         },
+        {
+          title: 'Bot Personas',
+          url: '/bots',
+          icon: IconRobot,
+        },
+        {
+          title: 'My Assistants',
+          url: '/bots',
+          icon: IconRobot,
+        },
         // {
         //   title: 'Tasks',
         //   url: '/tasks',

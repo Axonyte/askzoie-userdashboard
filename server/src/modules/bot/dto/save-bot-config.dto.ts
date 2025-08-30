@@ -47,11 +47,7 @@ export class SaveBotProfileDto {
     @IsIn(["SHORT", "MEDIUM", "DETAILED"])
     responseLength?: "SHORT" | "MEDIUM" | "DETAILED";
 
-    @IsOptional()
-    @IsObject()
-    knowledgeSources?: Record<string, any>;
-
-    @IsOptional()
-    @IsString()
-    embeddingToken?: string; // or let service generate JWT instead
+    // @IsOptional()
+    // @IsObject()
+    // knowledgeSources?: Record<string, any>;
 }

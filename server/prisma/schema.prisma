@@ -26,6 +26,7 @@ model User {
     promptQuota    PromptQuota?
     botPersonas    BotPersona[]
     AllowedDomains AllowedDomains[]
+    BotProfiles    BotProfile[]
 }
 
 model BotPersona {
@@ -51,7 +52,7 @@ model BotPersona {
 
 model BotProfile {
     id               String          @id @default(uuid())
-    userId           String // FK to your Users table
+    userId           String
     personaId        String
     name             String?         @db.VarChar(100) // user-customized bot name
     customGreeting   String?         @db.Text
@@ -59,8 +60,8 @@ model BotProfile {
     tone             String?         @db.VarChar(50)
     avatarUrl        String?         @db.Text
     primaryLanguage  String?         @db.VarChar(20)
-    allowedTopics    String[] // topics to allow
-    blockedTopics    String[] // topics to block
+    allowedTopics    String[]
+    blockedTopics    String[]
     responseLength   ResponseLength? @default(MEDIUM)
     knowledgeSources Json? // external sources {docs:[], links:[]}
     createdAt        DateTime        @default(now())
@@ -68,6 +69,7 @@ model BotProfile {
 
     // Relations
     persona BotPersona @relation(fields: [personaId], references: [id])
+    user    User       @relation(fields: [userId], references: [id])
 }
 
 model OTP {
