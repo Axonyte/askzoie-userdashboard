@@ -52,7 +52,6 @@ export class BotService {
 
         let avatarUrl: string | undefined = undefined;
 
-        console.log(file?.mimetype)
         if (file) {
             avatarUrl = `/bot-avatars/${userId}/${dto.name}`;
             await this.r2StorageService.uploadDocument(file, {
