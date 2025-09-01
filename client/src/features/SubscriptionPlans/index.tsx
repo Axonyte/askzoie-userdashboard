@@ -15,7 +15,7 @@ export default function SubscriptionsLayout() {
                 </div>
             </Header>
 
-            <Main fixed>
+            <Main>
                 <Outlet />
             </Main>
         </>
