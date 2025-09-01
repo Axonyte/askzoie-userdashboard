@@ -53,8 +53,7 @@ export class BotService {
         let avatarUrl: string | undefined = undefined;
 
         if (file) {
-            avatarUrl = `/bot-avatars/${userId}/${dto.name}`;
-            await this.r2StorageService.uploadDocument(file, {
+            avatarUrl = await this.r2StorageService.uploadDocument(file, {
                 folder: `bot-avatars/${userId}`,
                 fileName: dto.name!,
             });
@@ -106,6 +105,12 @@ export class BotService {
             //     defaultDomain: true,
             //     language: true,
             // },
+        });
+    }
+    async fetchUserBots(userId: string) {
+        return this.prisma.botProfile.findMany({
+            where: { userId },
+            include: { persona: true },
         });
     }
 

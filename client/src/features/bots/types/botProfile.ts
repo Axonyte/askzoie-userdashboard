@@ -11,7 +11,7 @@ export type BotProfile = {
     blockedTopics: string[]
     responseLength: 'SHORT' | 'MEDIUM' | 'DETAILED'
     // knowledgeSources: Record<string, any>
-    createdAt: Date
-    updatedAt: Date
+    createdAt: string
+    updatedAt: string
     userId: string
 }

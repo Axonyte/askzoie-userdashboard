@@ -62,6 +62,11 @@ export class BotController {
         return this.botService.fetchAvailablePersonas();
     }
 
+    @Get("user-bots")
+    fetchUserBots(@UserId() userId: string) {
+        return this.botService.fetchUserBots(userId);
+    }
+
     @Get("refresh-token/:botProfileId")
     async getRefreshToken(
         @UserId() userId: string,

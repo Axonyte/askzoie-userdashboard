@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import ImageSignedUrlInjector from '@/components/signed-url-injector'
 
 interface BotCardProps {
     bot: {
@@ -16,11 +17,13 @@ export function BotCard({ bot, onConfigure }: BotCardProps) {
         <Card className='flex flex-col items-center rounded-2xl p-4 text-center shadow-md'>
             <CardHeader>
                 {bot.avatarUrl ? (
-                    <img
-                        src={bot.avatarUrl}
-                        alt={bot.name}
-                        className='mx-auto h-16 w-16 rounded-full'
-                    />
+                    <ImageSignedUrlInjector fileUrl={bot.avatarUrl}>
+                        <img
+                            src=''
+                            alt={bot.name}
+                            className='mx-auto h-16 w-16 rounded-full'
+                        />
+                    </ImageSignedUrlInjector>
                 ) : (
                     <div className='mx-auto h-16 w-16 rounded-full bg-gray-200' />
                 )}

@@ -13,6 +13,7 @@ import { BotModule } from "./modules/bot/bot.module";
 import { PaypalModule } from "./modules/paypal/paypal.module";
 import { AllowedDomainsService } from './shared/services/allowed-domains/allowed-domains.service';
 import { ProfileModule } from './modules/profile/profile.module';
+import { MiscModule } from './modules/misc/misc.module';
 
 @Module({
     imports: [
@@ -47,6 +48,7 @@ import { ProfileModule } from './modules/profile/profile.module';
         BotModule,
         PaypalModule,
         ProfileModule,
+        MiscModule,
     ],
     controllers: [AppController],
     providers: [AppService, AllowedDomainsService],

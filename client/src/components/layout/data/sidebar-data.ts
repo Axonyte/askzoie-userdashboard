@@ -65,7 +65,7 @@ export const sidebarData: SidebarData = {
                 },
                 {
                     title: 'My Assistants',
-                    url: '/bots',
+                    url: '/my-assistants',
                     icon: IconRobot,
                 },
 

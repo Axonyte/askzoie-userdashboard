@@ -18,10 +18,10 @@ import { TPutBucket } from "./types/PutBucket";
 export class R2storageService {
     constructor(private readonly configService: ConfigService) {}
 
-    async getDocument(filedetails: TPutBucket) {
+    async getDocument(path: string) {
         const s3Client = new S3Client({
             region: "apac",
-            endpoint: `https://1d60af0524887ac5da70210756f6baeb.r2.cloudflarestorage.com/${filedetails.folder}`,
+            endpoint: `https://1d60af0524887ac5da70210756f6baeb.r2.cloudflarestorage.com`,
             credentials: {
                 accessKeyId: this.configService.get(
                     "R2_ACCESS_KEY_ID"
@@ -34,7 +34,7 @@ export class R2storageService {
 
         const command = new GetObjectCommand({
             Bucket: this.configService.get("R2_BUCKET_NAME"),
-            Key: filedetails.fileName,
+            Key: path,
         });
 
         const url = await getSignedUrl(s3Client, command);
@@ -44,8 +44,8 @@ export class R2storageService {
 
     async uploadDocument(file: Express.Multer.File, filedetails: TPutBucket) {
         const s3Client = new S3Client({
-            region: "apac",
-            endpoint: `https://1d60af0524887ac5da70210756f6baeb.r2.cloudflarestorage.com/${filedetails.folder}`,
+            region: "auto", // Cloudflare R2 usually works with "auto"
+            endpoint: `https://1d60af0524887ac5da70210756f6baeb.r2.cloudflarestorage.com`,
             credentials: {
                 accessKeyId: this.configService.get(
                     "R2_ACCESS_KEY_ID"
@@ -55,29 +55,42 @@ export class R2storageService {
                 ) as string,
             },
         });
+
+        // Derive extension from mimetype
+        const extension = file.mimetype.split("/")[1]; // e.g. "png" from "image/png"
+
+        // Ensure fileName has the right extension
+        let fileNameWithExt = filedetails.fileName;
+        if (
+            !fileNameWithExt
+                .toLowerCase()
+                .endsWith(`.${extension.toLowerCase()}`)
+        ) {
+            fileNameWithExt = `${fileNameWithExt}.${extension}`;
+        }
+
+        const fileURL = `${filedetails.folder.replace(/^\//, "")}/${fileNameWithExt}`;
+
         const putCommand = new PutObjectCommand({
             Bucket: this.configService.get("R2_BUCKET_NAME"),
-            Key: filedetails.fileName,
+            Key: fileURL,
             Body: file.buffer,
-            Expires: new Date("2024-10-25"),
+            ContentType: file.mimetype, // <-- store correct content type
         });
+
         const res = await s3Client.send(putCommand);
-        // console.log(res.$metadata.httpStatusCode)
+
         if (res.$metadata.httpStatusCode !== 200) {
             throw new HttpException(
                 "Unable to Upload Document",
                 HttpStatus.INTERNAL_SERVER_ERROR
             );
         }
+        console.log(fileURL);
 
-        const getCommand = new GetObjectCommand({
-            Bucket: this.configService.get("R2_BUCKET_NAME"),
-            Key: filedetails.fileName,
-        });
-        const url = await getSignedUrl(s3Client, getCommand);
-
-        return url;
+        return fileURL;
     }
+
     async deleteDocument(filedetails: TPutBucket) {
         const s3Client = new S3Client({
             region: "apac",

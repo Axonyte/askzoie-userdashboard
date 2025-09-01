@@ -26,10 +26,12 @@ import { Route as ClerkAuthenticatedRouteRouteImport } from './routes/clerk/_aut
 import { Route as ClerkauthRouteRouteImport } from './routes/clerk/(auth)/route'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedPlansRouteRouteImport } from './routes/_authenticated/plans/route'
+import { Route as AuthenticatedMyAssistantsRouteRouteImport } from './routes/_authenticated/my-assistants/route'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks/index'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedPlansIndexRouteImport } from './routes/_authenticated/plans/index'
+import { Route as AuthenticatedMyAssistantsIndexRouteImport } from './routes/_authenticated/my-assistants/index'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
 import { Route as AuthenticatedChatsIndexRouteImport } from './routes/_authenticated/chats/index'
 import { Route as AuthenticatedBotsIndexRouteImport } from './routes/_authenticated/bots/index'
@@ -127,6 +129,12 @@ const AuthenticatedPlansRouteRoute = AuthenticatedPlansRouteRouteImport.update({
   path: '/plans',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMyAssistantsRouteRoute =
+  AuthenticatedMyAssistantsRouteRouteImport.update({
+    id: '/my-assistants',
+    path: '/my-assistants',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedUsersIndexRoute = AuthenticatedUsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
@@ -148,6 +156,12 @@ const AuthenticatedPlansIndexRoute = AuthenticatedPlansIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedPlansRouteRoute,
 } as any)
+const AuthenticatedMyAssistantsIndexRoute =
+  AuthenticatedMyAssistantsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedMyAssistantsRouteRoute,
+  } as any)
 const AuthenticatedHelpCenterIndexRoute =
   AuthenticatedHelpCenterIndexRouteImport.update({
     id: '/help-center/',
@@ -224,6 +238,7 @@ const AuthenticatedSettingsAccountRoute =
 
 export interface FileRoutesByFullPath {
   '/clerk': typeof ClerkAuthenticatedRouteRouteWithChildren
+  '/my-assistants': typeof AuthenticatedMyAssistantsRouteRouteWithChildren
   '/plans': typeof AuthenticatedPlansRouteRouteWithChildren
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/clerk/': typeof ClerkauthRouteRouteWithChildren
@@ -251,6 +266,7 @@ export interface FileRoutesByFullPath {
   '/bots': typeof AuthenticatedBotsIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
+  '/my-assistants/': typeof AuthenticatedMyAssistantsIndexRoute
   '/plans/': typeof AuthenticatedPlansIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
@@ -282,6 +298,7 @@ export interface FileRoutesByTo {
   '/bots': typeof AuthenticatedBotsIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
+  '/my-assistants': typeof AuthenticatedMyAssistantsIndexRoute
   '/plans': typeof AuthenticatedPlansIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
   '/tasks': typeof AuthenticatedTasksIndexRoute
@@ -291,6 +308,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/clerk': typeof ClerkRouteRouteWithChildren
+  '/_authenticated/my-assistants': typeof AuthenticatedMyAssistantsRouteRouteWithChildren
   '/_authenticated/plans': typeof AuthenticatedPlansRouteRouteWithChildren
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
   '/clerk/(auth)': typeof ClerkauthRouteRouteWithChildren
@@ -319,6 +337,7 @@ export interface FileRoutesById {
   '/_authenticated/bots/': typeof AuthenticatedBotsIndexRoute
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
+  '/_authenticated/my-assistants/': typeof AuthenticatedMyAssistantsIndexRoute
   '/_authenticated/plans/': typeof AuthenticatedPlansIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
   '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
@@ -328,6 +347,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/clerk'
+    | '/my-assistants'
     | '/plans'
     | '/settings'
     | '/clerk/'
@@ -355,6 +375,7 @@ export interface FileRouteTypes {
     | '/bots'
     | '/chats'
     | '/help-center'
+    | '/my-assistants/'
     | '/plans/'
     | '/settings/'
     | '/tasks'
@@ -386,6 +407,7 @@ export interface FileRouteTypes {
     | '/bots'
     | '/chats'
     | '/help-center'
+    | '/my-assistants'
     | '/plans'
     | '/settings'
     | '/tasks'
@@ -394,6 +416,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_authenticated'
     | '/clerk'
+    | '/_authenticated/my-assistants'
     | '/_authenticated/plans'
     | '/_authenticated/settings'
     | '/clerk/(auth)'
@@ -422,6 +445,7 @@ export interface FileRouteTypes {
     | '/_authenticated/bots/'
     | '/_authenticated/chats/'
     | '/_authenticated/help-center/'
+    | '/_authenticated/my-assistants/'
     | '/_authenticated/plans/'
     | '/_authenticated/settings/'
     | '/_authenticated/tasks/'
@@ -564,6 +588,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlansRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/my-assistants': {
+      id: '/_authenticated/my-assistants'
+      path: '/my-assistants'
+      fullPath: '/my-assistants'
+      preLoaderRoute: typeof AuthenticatedMyAssistantsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/users/': {
       id: '/_authenticated/users/'
       path: '/users'
@@ -591,6 +622,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/plans/'
       preLoaderRoute: typeof AuthenticatedPlansIndexRouteImport
       parentRoute: typeof AuthenticatedPlansRouteRoute
+    }
+    '/_authenticated/my-assistants/': {
+      id: '/_authenticated/my-assistants/'
+      path: '/'
+      fullPath: '/my-assistants/'
+      preLoaderRoute: typeof AuthenticatedMyAssistantsIndexRouteImport
+      parentRoute: typeof AuthenticatedMyAssistantsRouteRoute
     }
     '/_authenticated/help-center/': {
       id: '/_authenticated/help-center/'
@@ -686,6 +724,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedMyAssistantsRouteRouteChildren {
+  AuthenticatedMyAssistantsIndexRoute: typeof AuthenticatedMyAssistantsIndexRoute
+}
+
+const AuthenticatedMyAssistantsRouteRouteChildren: AuthenticatedMyAssistantsRouteRouteChildren =
+  {
+    AuthenticatedMyAssistantsIndexRoute: AuthenticatedMyAssistantsIndexRoute,
+  }
+
+const AuthenticatedMyAssistantsRouteRouteWithChildren =
+  AuthenticatedMyAssistantsRouteRoute._addFileChildren(
+    AuthenticatedMyAssistantsRouteRouteChildren,
+  )
+
 interface AuthenticatedPlansRouteRouteChildren {
   AuthenticatedPlansIndexRoute: typeof AuthenticatedPlansIndexRoute
 }
@@ -728,6 +780,7 @@ const AuthenticatedSettingsRouteRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedMyAssistantsRouteRoute: typeof AuthenticatedMyAssistantsRouteRouteWithChildren
   AuthenticatedPlansRouteRoute: typeof AuthenticatedPlansRouteRouteWithChildren
   AuthenticatedSettingsRouteRoute: typeof AuthenticatedSettingsRouteRouteWithChildren
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
@@ -740,6 +793,8 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedMyAssistantsRouteRoute:
+    AuthenticatedMyAssistantsRouteRouteWithChildren,
   AuthenticatedPlansRouteRoute: AuthenticatedPlansRouteRouteWithChildren,
   AuthenticatedSettingsRouteRoute: AuthenticatedSettingsRouteRouteWithChildren,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
