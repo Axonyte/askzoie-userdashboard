@@ -31,7 +31,7 @@ model User {
 
 model BotPersona {
     id              String   @id @default(uuid())
-    name            String   @db.VarChar(100) // e.g. "Tech Expert"
+    name            String   @db.VarChar(100) @unique() // e.g. "Tech Expert"
     description     String?  @db.Text
     gender          String?  @db.VarChar(20) // e.g. "male", "female", "neutral"
     systemPrompt    String?  @db.Text // base system instruction for LLM

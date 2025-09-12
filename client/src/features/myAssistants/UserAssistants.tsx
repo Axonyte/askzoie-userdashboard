@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { set } from 'zod'
 import { useQuery } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { api } from '@/config/apiClient'
 import {
     Bot,
@@ -47,6 +47,7 @@ type UserBot = {
 function UserAssistants() {
     const [selectedBot, setSelectedBot] = useState<BotPersona | null>(null)
     const [open, setOpen] = useState(false)
+    const navigate = useNavigate()
 
     const {
         data: assistants,
@@ -137,8 +138,9 @@ function UserAssistants() {
         })
     }
     const handleConfigure = (assistant: UserBot) => {
-        prefillConfigureModal(assistant)
-        setOpen(true)
+        navigate({ to: `/my-assistant/${assistant.id}` })
+        // prefillConfigureModal(assistant)
+        // setOpen(true)
     }
 
     return (

@@ -10,6 +10,7 @@ import { ConfigService } from "@nestjs/config";
 import { TBotPayload } from "./types/BotPayload";
 import { AddPersonaDto } from "./dto/add-persona.dto";
 import { R2storageService } from "src/shared/services/r2storage/r2storage.service";
+import { EditBotProfileDto } from "./dto/edit-bot-config.dto";
 
 @Injectable()
 export class BotService {
@@ -35,6 +36,42 @@ export class BotService {
                 language: dto.language ?? "en",
             },
         });
+    }
+
+    async initDefaultBots(dto: AddPersonaDto[]) {
+        await Promise.all(
+            dto.map((bot) =>
+                this.prisma.botPersona.upsert({
+                    create: {
+                        name: bot.name,
+                        description: bot.description,
+                        gender: bot.gender,
+                        systemPrompt: bot.systemPrompt,
+                        defaultTone: bot.defaultTone,
+                        defaultDomain: bot.defaultDomain,
+                        defaultGreeting: bot.defaultGreeting,
+                        defaultFallback: bot.defaultFallback,
+                        avatarUrl: bot.avatarUrl,
+                        language: bot.language ?? "en",
+                    },
+                    update: {
+                        name: bot.name,
+                        description: bot.description,
+                        gender: bot.gender,
+                        systemPrompt: bot.systemPrompt,
+                        defaultTone: bot.defaultTone,
+                        defaultDomain: bot.defaultDomain,
+                        defaultGreeting: bot.defaultGreeting,
+                        defaultFallback: bot.defaultFallback,
+                        avatarUrl: bot.avatarUrl,
+                        language: bot.language ?? "en",
+                    },
+                    where: {
+                        name: bot.name,
+                    },
+                })
+            )
+        );
     }
 
     async saveBotProfile(
@@ -93,6 +130,64 @@ export class BotService {
         };
     }
 
+    async editAssistant(
+        userId: string,
+        dto: EditBotProfileDto,
+        file?: Express.Multer.File
+    ) {
+        // Make sure persona exists
+        const existingProfile = await this.prisma.botProfile.findUnique({
+            where: { id: dto.profileId },
+        });
+        if (!existingProfile) {
+            throw new NotFoundException("Assistant not found");
+        }
+
+        let avatarUrl: string | undefined = undefined;
+
+        if (file) {
+            avatarUrl = await this.r2StorageService.uploadDocument(file, {
+                folder: `bot-avatars/${userId}`,
+                fileName: dto.name!,
+            });
+        }
+
+        const botProfile = await this.prisma.botProfile.update({
+            where:{
+                id:dto.profileId
+            },
+            data: {
+                userId,
+                name: dto.name,
+                customGreeting: dto.customGreeting,
+                customFallback: dto.customFallback,
+                tone: dto.tone,
+                avatarUrl,
+                primaryLanguage: dto.primaryLanguage,
+                allowedTopics: dto.allowedTopics ?? [],
+                blockedTopics: dto.blockedTopics ?? [],
+                responseLength: dto.responseLength,
+                // knowledgeSources: dto.knowledgeSources ?? {},
+            },
+        });
+
+        // Create refresh token containing botConfig.id
+        const refreshToken = this.jwtService.sign(
+            {
+                botProfileId: botProfile.id,
+                userId,
+            },
+            {
+                secret: this.configService.get("JWT_SECRET"),
+            }
+        );
+
+        return {
+            botProfile,
+            refreshToken,
+        };
+    }
+
     async fetchAvailablePersonas() {
         return this.prisma.botPersona.findMany({
             // select: {
@@ -110,6 +205,12 @@ export class BotService {
     async fetchUserBots(userId: string) {
         return this.prisma.botProfile.findMany({
             where: { userId },
+            include: { persona: true },
+        });
+    }
+    async fetchUserBotById(botId: string) {
+        return this.prisma.botProfile.findUnique({
+            where: { id: botId },
             include: { persona: true },
         });
     }

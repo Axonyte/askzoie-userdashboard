@@ -14,6 +14,7 @@ import { PaypalModule } from "./modules/paypal/paypal.module";
 import { AllowedDomainsService } from './shared/services/allowed-domains/allowed-domains.service';
 import { ProfileModule } from './modules/profile/profile.module';
 import { MiscModule } from './modules/misc/misc.module';
+import { ApplicationSetupModule } from "./shared/services/application-setup/application-setup.module";
 
 @Module({
     imports: [
@@ -22,6 +23,7 @@ import { MiscModule } from './modules/misc/misc.module';
             isGlobal: true,
         }),
         PrismaModule,
+        ApplicationSetupModule,
         MailerModule.forRoot({
             transport: {
                 host: process.env.NODE_MAILER_HOST,
