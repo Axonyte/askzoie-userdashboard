@@ -1,3 +1,4 @@
+// forgot-password.tsx
 import { Link } from '@tanstack/react-router'
 import {
   Card,
@@ -13,14 +14,13 @@ import { ForgotPasswordForm } from './components/forgot-password-form'
 export default function ForgotPassword() {
   return (
     <AuthLayout>
-      <Card className='gap-4'>
+      <Card className='gap-4 min-w-[400px]'>
         <CardHeader>
           <CardTitle className='text-lg tracking-tight'>
             Forgot Password
           </CardTitle>
           <CardDescription>
-            Enter your registered email and <br /> we will send you a link to
-            reset your password.
+            Enter your registered email and we will send you an OTP to reset your password.
           </CardDescription>
         </CardHeader>
         <CardContent>

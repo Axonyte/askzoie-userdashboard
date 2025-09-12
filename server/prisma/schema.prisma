@@ -15,9 +15,131 @@ datasource db {
 }
 
 model User {
+    id             String           @id @default(uuid())
+    email          String           @unique
+    name           String
+    password       String
+    bio            String?
+    socialLinks    String[]
+    accountStatus  AccountStatus    @default(REVIEWING)
+    createdAt      DateTime         @default(now())
+    OTP            OTP[]
+    subscription   Subscription?
+    promptQuota    PromptQuota?
+    botPersonas    BotPersona[]
+    AllowedDomains AllowedDomains[]
+    BotProfiles    BotProfile[]
+}
+
+model BotPersona {
+    id              String   @id @default(uuid())
+    name            String   @unique() @db.VarChar(100) // e.g. "Tech Expert"
+    description     String?  @db.Text
+    gender          String?  @db.VarChar(20) // e.g. "male", "female", "neutral"
+    systemPrompt    String?  @db.Text // base system instruction for LLM
+    defaultTone     String?  @db.VarChar(50) // "formal", "casual"
+    defaultDomain   String?  @db.VarChar(100) // "Technology", "Education"
+    defaultGreeting String?  @db.Text
+    defaultFallback String?  @db.Text
+    avatarUrl       String?  @db.Text
+    language        String   @default("en") @db.VarChar(20)
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
+
+    // Relations
+    botProfiles BotProfile[]
+    User        User?        @relation(fields: [userId], references: [id])
+    userId      String?
+}
+
+model BotProfile {
+    id               String          @id @default(uuid())
+    userId           String
+    personaId        String
+    name             String?         @db.VarChar(100) // user-customized bot name
+    customGreeting   String?         @db.Text
+    customFallback   String?         @db.Text
+    tone             String?         @db.VarChar(50)
+    avatarUrl        String?         @db.Text
+    primaryLanguage  String?         @db.VarChar(20)
+    allowedTopics    String[]
+    blockedTopics    String[]
+    responseLength   ResponseLength? @default(MEDIUM)
+    knowledgeSources Json? // external sources {docs:[], links:[]}
+    createdAt        DateTime        @default(now())
+    updatedAt        DateTime        @updatedAt
+
+    // Relations
+    persona BotPersona @relation(fields: [personaId], references: [id])
+    user    User       @relation(fields: [userId], references: [id])
+}
+
+model OTP {
     id        String   @id @default(uuid())
-    email     String   @unique
-    name      String
-    password  String
+    userId    String
+    code      String   @unique
     createdAt DateTime @default(now())
+    expiresAt DateTime
+
+    user User @relation(fields: [userId], references: [id])
+}
+
+model Subscription {
+    id                 String    @id @default(uuid())
+    userId             String    @unique
+    plan               Plan      @default(FREE)
+    startDate          DateTime  @default(now())
+    endDate            DateTime?
+    canceledAt         DateTime?
+    currentPeriodStart DateTime  @default(now())
+    currentPeriodEnd   DateTime
+    status             String    @default("active")
+
+    user User @relation(fields: [userId], references: [id])
+}
+
+model PromptQuota {
+    id           String   @id @default(uuid())
+    userId       String   @unique
+    monthlyQuota Int // Total allowed messages per month based on plan
+    usedQuota    Int      @default(0) // Messages used this month
+    resetDate    DateTime // Next quota reset date
+    lastUpdated  DateTime @default(now())
+
+    user User @relation(fields: [userId], references: [id])
+}
+
+model AllowedDomains {
+    origin      String   @id
+    description String?
+    createdAt   DateTime @default(now())
+    userId      String
+    user        User     @relation(fields: [userId], references: [id])
+}
+
+enum AccountStatus {
+    REVIEWING
+    APPROVED
+    SUSPENDED
+    REJECTED
+}
+
+enum Plan {
+    FREE
+    STARTER
+    GROWTH
+    PREMIUM
+    ENTERPRISE
+}
+
+enum ResponseLength {
+    SHORT // concise answers, 1–2 sentences
+    MEDIUM // balanced, a few sentences
+    DETAILED // long, explanatory responses
+}
+
+enum Bot {
+    ZOIE
+    OPTIMUS
+    JARVIS
 }
