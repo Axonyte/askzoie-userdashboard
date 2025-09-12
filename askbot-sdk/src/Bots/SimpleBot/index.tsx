@@ -3,6 +3,7 @@ import ChatWrapper from "./ChatWrapper";
 import { useAppDispatch, useAppSelector } from "@/Redux/Hooks";
 import { GlobalVarsActions } from "@/Redux/slices/GlobalVars";
 import type { ValueTransition } from "motion";
+import { useAuth } from "@/providers/AuthProvider";
 
 const transitions: ValueTransition = {
     delay: 0.25,
@@ -14,15 +15,19 @@ const transitions: ValueTransition = {
 const SimpleBot = () => {
     const isOpen = useAppSelector((state) => state.GlobalVars.botUI);
     const dispatch = useAppDispatch();
+    const { isLoading } = useAuth();
 
     return (
         <motion.div
             className="__SIMPLE__BOT__"
             onClick={() => {
-                if (!isOpen) dispatch(GlobalVarsActions.setBotUI(true));
+                if (isLoading) return;
+                if (!isOpen) {
+                    dispatch(GlobalVarsActions.setBotUI(true));
+                }
             }}
             style={{
-                cursor: isOpen ? "unset" : "pointer",
+                cursor: isOpen ? "unset" : isLoading ? "wait" : "pointer",
             }}
             initial={false}
             whileHover={{ scale: 1.01 }}
@@ -41,7 +46,7 @@ const SimpleBot = () => {
                 {isOpen && <ChatWrapper />}
             </AnimatePresence>
             <AnimatePresence mode="wait">
-                {!isOpen && (
+                {!isLoading && !isOpen && (
                     <motion.img
                         initial={{ opacity: 0 }}
                         exit={{ opacity: 0 }}
