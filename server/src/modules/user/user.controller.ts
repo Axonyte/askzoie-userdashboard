@@ -8,6 +8,7 @@ import {
     Delete,
     UseInterceptors,
     ClassSerializerInterceptor,
+    Put,
 } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { CreateUserDto } from "./dto/create-user.dto";
@@ -31,9 +32,22 @@ export class UserController {
         return new UserEntity(user);
     }
 
+    @Put("profile")
+    @UseInterceptors(ClassSerializerInterceptor)
+    async updateUserProfile(
+        @UserId() userId: string,
+        @Body() updateUserDto: UpdateUserDto
+    ) {
+        const user = await this.userService.updateUserDetails(
+            userId,
+            updateUserDto
+        );
+        return new UserEntity(user);
+    }
+
     @Patch(":id")
     update(@Param("id") id: string, @Body() updateUserDto: UpdateUserDto) {
-        return this.userService.update(id, updateUserDto);
+        return this.userService.updateUserDetails(id, updateUserDto);
     }
 
     @Delete(":id")
