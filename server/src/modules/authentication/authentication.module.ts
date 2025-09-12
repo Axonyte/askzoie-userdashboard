@@ -5,12 +5,14 @@ import { LocalStrategy } from "./strategies/local.auth";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { SubscriptionService } from "../subscription/subscription.service";
+import { GoogleStrategy } from "./strategies/google.auth";
 
 @Module({
     controllers: [AuthenticationController],
     providers: [
         AuthenticationService,
         LocalStrategy,
+        GoogleStrategy,
         ConfigService,
         JwtService,
         SubscriptionService
