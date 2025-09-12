@@ -1,19 +1,16 @@
 import {
     Controller,
-    Get,
     Post,
     Body,
-    Patch,
-    Param,
-    Delete,
     UseInterceptors,
     ClassSerializerInterceptor,
     UseGuards,
     Request,
+    Get,
+    Req,
 } from "@nestjs/common";
 import { AuthenticationService } from "./authentication.service";
 import { CreateAuthenticationDto } from "./dto/create-authentication.dto";
-import { UpdateAuthenticationDto } from "./dto/update-authentication.dto";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { AuthGuard } from "@nestjs/passport";
@@ -42,12 +39,25 @@ export class AuthenticationController {
         return new AuthEntity(user);
     }
 
-    @Post('forgot-password')
+    @Get("google")
+    @UseGuards(AuthGuard("google"))
+    async googleAuth() {
+        // initiates the Google OAuth2 login flow
+    }
+
+    @Get("google/callback")
+    @UseGuards(AuthGuard("google"))
+    async googleAuthRedirect(@Req() req) {
+        // handle redirect from Google
+        return this.authenticationService.googleLogin(req.user);
+    }
+
+    @Post("forgot-password")
     async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
         return this.authenticationService.forgotPassword(forgotPasswordDto);
     }
 
-    @Post('reset-password')
+    @Post("reset-password")
     async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
         return this.authenticationService.resetPassword(resetPasswordDto);
     }

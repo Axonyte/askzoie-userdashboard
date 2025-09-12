@@ -58,10 +58,6 @@ export class AuthenticationService {
     }
 
     async login(user: any) {
-        // if (user.console !== user.userType) {
-        //     throw new UnauthorizedException();
-        // }
-
         const payload: TUserPayload = {
             userId: user.id,
             name: user.name,
@@ -75,6 +71,22 @@ export class AuthenticationService {
                 secret: this.configService.get<string>("JWT_SECRET"),
                 expiresIn: "10 days",
             }),
+        };
+    }
+
+    async googleLogin(user: any) {
+        if (!user) {
+            return { message: "No user from Google" };
+        }
+
+        // Here you can:
+        // 1. Check if user exists in DB
+        // 2. If not, create a new one
+        // 3. Generate JWT and return
+
+        return {
+            message: "User info from Google",
+            user,
         };
     }
 
