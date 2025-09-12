@@ -19,9 +19,7 @@ const SimpleBot = () => {
         <motion.div
             className="__SIMPLE__BOT__"
             onClick={() => {
-                if (!isOpen) {
-                    dispatch(GlobalVarsActions.setBotUI(true));
-                }
+                if (!isOpen) dispatch(GlobalVarsActions.setBotUI(true));
             }}
             style={{
                 cursor: isOpen ? "unset" : "pointer",
@@ -39,24 +37,15 @@ const SimpleBot = () => {
                 height: transitions,
             }}
         >
-            <AnimatePresence mode="wait" presenceAffectsLayout>
+            <AnimatePresence mode="wait">
                 {isOpen && <ChatWrapper />}
             </AnimatePresence>
-            <AnimatePresence mode="wait" presenceAffectsLayout>
+            <AnimatePresence mode="wait">
                 {!isOpen && (
                     <motion.img
-                        initial={{
-                            opacity: 0,
-                        }}
-                        exit={{
-                            opacity: 0,
-                        }}
-                        animate={{
-                            opacity: 1,
-                            transition: {
-                                delay: 0.2,
-                            },
-                        }}
+                        initial={{ opacity: 0 }}
+                        exit={{ opacity: 0 }}
+                        animate={{ opacity: 1, transition: { delay: 0.2 } }}
                         className="BOT_PROFILE_PIC"
                         src="https://www.w3schools.com/howto/img_avatar.png"
                         alt=""
