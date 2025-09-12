@@ -1,9 +1,11 @@
+import { useAuth } from "@/providers/AuthProvider";
 import { useAppDispatch } from "@/Redux/Hooks";
 import { GlobalVarsActions } from "@/Redux/slices/GlobalVars";
 import { motion } from "motion/react";
 
 const ChatHead = () => {
     const dispatch = useAppDispatch();
+    const { botInfo } = useAuth();
     return (
         <motion.div className="__SIMPLE__BOT_HEAD__">
             <div className="left">
@@ -14,7 +16,7 @@ const ChatHead = () => {
                     />
                 </div>
                 <div className="content">
-                    <div className="name">Bot</div>
+                    <div className="name">{botInfo?.name}</div>
                     <div className="desc">Online Now</div>
                 </div>
             </div>

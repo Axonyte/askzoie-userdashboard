@@ -6,8 +6,9 @@ import StoreProvider from "./Redux/StoreProvider";
 
 type Props = {
     token?: string;
+    botType: "SIMPLE_BOT";
 };
-const App: FC<Props> = ({ token }) => {
+const App: FC<Props> = ({ token, botType }) => {
     return (
         <StoreProvider>
             <QueryClientProviders>

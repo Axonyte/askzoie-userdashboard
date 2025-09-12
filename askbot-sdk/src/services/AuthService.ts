@@ -2,16 +2,28 @@ import { AxiosClient } from "@/utils/axios";
 
 class AuthService {
     static verifyToken = async (token: string) => {
-        // await AxiosClient.get('/auth/verify-token', {
-        //     headers: {
-        //         Authorization: `Bearer ${token}`,
-        //     },
-        // })
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve(true);
-            }, 1000);
-        });
+        try {
+            AxiosClient.interceptors.request.use(
+                (config) => {
+                    if (token) {
+                        config.headers["x-bot-profile"] = token
+                    }
+                    return config
+                },
+                (error) => {
+                    return Promise.reject(error)
+                }
+            )
+
+            const { data } = await AxiosClient.get('/bot/auth', {
+                headers: {
+                    "x-bot-profile": token,
+                },
+            });
+            return data;
+        } catch (error) {
+            throw new Error("Invalid token");
+        }
     }
 }
 

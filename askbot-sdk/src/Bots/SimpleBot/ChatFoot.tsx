@@ -1,10 +1,31 @@
+import { useAppDispatch } from "@/Redux/Hooks";
+import { MessageActions } from "@/Redux/slices/MessageSlice";
+import MessageService from "@/services/MessageService";
+import { nanoid } from "@reduxjs/toolkit";
 import { motion } from "motion/react";
 import { useState } from "react";
 
 const ChatFoot = () => {
     const [message, setMessage] = useState("");
+    const dispatch = useAppDispatch();
 
-    const onSubmit = () => {
+    const onSubmit = async () => {
+        dispatch(
+            MessageActions.addMessage({
+                id: nanoid(),
+                isBot: false,
+                message: message,
+            })
+        );
+        const response = await MessageService.newMessage(message);
+        dispatch(
+            MessageActions.addMessage({
+                id: nanoid(),
+                isBot: true,
+                message: response.botMessage,
+            })
+        );
+
         setMessage("");
     };
     return (

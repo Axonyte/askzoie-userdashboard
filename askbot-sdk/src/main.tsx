@@ -60,7 +60,7 @@ export class AskBot {
 
         // Mount the React application into the Shadow DOM
         const root = ReactDOM.createRoot(mountPoint);
-        root.render(<App token={token} />);
+        root.render(<App token={token} botType={botType} />);
     };
 }
 

@@ -1,23 +1,25 @@
-import MessageService from "@/services/MessageService";
+import { useAuth } from "@/providers/AuthProvider";
+import { useAppSelector } from "@/Redux/Hooks";
 import type { BotMessage, UserMessage } from "@/types/message";
-import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import { useState, type FC } from "react";
 
 const ChatBody = () => {
-    const { data, isLoading } = useQuery({
-        queryKey: ["user-messages"],
-        queryFn: async () => {
-            const messages = await MessageService.getMessages();
-            return messages;
-        },
-    });
+    const messages = useAppSelector((s) => s.MessageSlice.messages);
+
+    const { botInfo } = useAuth();
 
     return (
         <motion.div className="__SIMPLE__BOT__BODY__">
-            {isLoading && <div className="loading-all-messages">Loading</div>}
             <div className="messages">
-                {data?.map((message) => (
+                <Message
+                    msg={{
+                        id: "welcome-msg",
+                        isBot: true,
+                        message: botInfo?.persona?.defaultGreeting as string,
+                    }}
+                />
+                {messages?.map((message) => (
                     <Message msg={message} key={message.id} />
                 ))}
             </div>
@@ -46,7 +48,7 @@ const Message: FC<{ msg: UserMessage | BotMessage }> = ({ msg }) => {
                     x: isHovered ? (msg.isBot ? 10 : -10) : 0,
                     transition: {
                         x: {
-                            delay: !isHovered ? 0 : 0.15,
+                            delay: 0,
                             type: "spring",
                             stiffness: 200,
                             damping: 20,

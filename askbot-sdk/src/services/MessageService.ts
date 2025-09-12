@@ -1,4 +1,5 @@
 import type { BotMessage, UserMessage } from "@/types/message";
+import { AxiosClient } from "@/utils/axios";
 
 export const DemoMessages = [
     {
@@ -59,6 +60,12 @@ class MessageService {
         return new Promise((res,) => {
             res(DemoMessages)
         })
+    }
+    static newMessage = async (msg: string): Promise<any> => {
+        const { data } = await AxiosClient.post('/bot/chat', {
+            message: msg
+        });
+        return data;
     }
 }
 

@@ -15,7 +15,9 @@ const transitions: ValueTransition = {
 const SimpleBot = () => {
     const isOpen = useAppSelector((state) => state.GlobalVars.botUI);
     const dispatch = useAppDispatch();
-    const { isLoading } = useAuth();
+    const { isLoading, isAuthenticated } = useAuth();
+
+    if (!isAuthenticated) return <></>;
 
     return (
         <motion.div
