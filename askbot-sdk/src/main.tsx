@@ -6,13 +6,13 @@ import { minify } from "csso"; // CSS minifier for optimized bundle size
 // Type definition for initialization options
 type Options = {
     elementId?: string; // Optional target element ID for mounting
-    token: string | null; // Required token for authentication/initialization
+    token?: string; // Required token for authentication/initialization
     botType: "SIMPLE_BOT";
 };
 
 // Default option values
 const defaultOptions: Options = {
-    token: null,
+    token: undefined,
     botType: "SIMPLE_BOT",
 };
 
@@ -22,7 +22,7 @@ export class AskBot {
      * or creates a new container if none is specified.
      */
     createBot = (opt: Options = defaultOptions) => {
-        const { elementId, token } = opt;
+        const { elementId, token, botType } = opt;
 
         // Abort if token is missing
         if (!token) return;
@@ -60,7 +60,7 @@ export class AskBot {
 
         // Mount the React application into the Shadow DOM
         const root = ReactDOM.createRoot(mountPoint);
-        root.render(<App />);
+        root.render(<App token={token} botType={botType} />);
     };
 }
 

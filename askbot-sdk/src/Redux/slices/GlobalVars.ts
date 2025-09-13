@@ -5,7 +5,7 @@ type initGlobalVars = {
 };
 
 const initialState: initGlobalVars = {
-    botUI: false
+    botUI: false,
 };
 
 export const Slice = createSlice({
@@ -14,7 +14,7 @@ export const Slice = createSlice({
     reducers: {
         setBotUI: (state, action: PayloadAction<initGlobalVars["botUI"]>) => {
             state.botUI = action.payload
-        }
+        },
     },
 });
 

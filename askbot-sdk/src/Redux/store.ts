@@ -1,10 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 import GlobalVars from "./slices/GlobalVars";
+import MessageSlice from "./slices/MessageSlice";
 
 export const makeStore = () => {
     return configureStore({
         reducer: {
-            GlobalVars: GlobalVars
+            GlobalVars: GlobalVars,
+            MessageSlice: MessageSlice,
         },
     });
 };
