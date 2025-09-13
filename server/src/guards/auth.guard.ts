@@ -21,7 +21,7 @@ export class AuthGuard implements CanActivate {
     ): boolean | Promise<boolean> | Observable<boolean> {
         try {
             const request: Request = context.switchToHttp().getRequest();
-            if (isPublicRoute(request.url)) {
+            if (isPublicRoute(request.url) || request.url.startsWith("/auth/google/callback")) {
                 return true;
             }
             const token = extractTokenFromHeader(request);

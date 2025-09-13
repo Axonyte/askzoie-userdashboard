@@ -8,6 +8,8 @@ import {
     Request,
     Get,
     Req,
+    Res,
+    Redirect,
 } from "@nestjs/common";
 import { AuthenticationService } from "./authentication.service";
 import { CreateAuthenticationDto } from "./dto/create-authentication.dto";
@@ -15,6 +17,7 @@ import { ForgotPasswordDto } from "./dto/forgot-password.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { AuthEntity } from "./entities/authentication.entity";
+import type { Response } from "express";
 
 @Controller("auth")
 export class AuthenticationController {
@@ -47,9 +50,22 @@ export class AuthenticationController {
 
     @Get("google/callback")
     @UseGuards(AuthGuard("google"))
-    async googleAuthRedirect(@Req() req) {
-        // handle redirect from Google
-        return this.authenticationService.googleLogin(req.user);
+    async googleAuthRedirect(
+        @Req() req,
+        @Res({ passthrough: true }) res: Response
+    ) {
+        const user = await this.authenticationService.googleLogin(req.user);
+
+        // Set cookie with your app's JWT (not Google token)
+        res.cookie("auth-token", JSON.stringify(user.accessToken), {
+            // httpOnly: true, // protects against XSS
+            secure: process.env.NODE_ENV === "production", // use HTTPS in prod
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
+
+        // Redirect user to frontend
+        return res.redirect("http://localhost:5173/");
     }
 
     @Post("forgot-password")

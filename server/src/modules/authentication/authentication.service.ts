@@ -18,6 +18,8 @@ import { ConfigService } from "@nestjs/config";
 import { TUserPayload } from "../user/types/UserPayload";
 import { MailerService } from "@nestjs-modules/mailer";
 import { randomBytes } from "crypto";
+import { GoogleLoginPayload } from "./dto/google-login.dt";
+import { AccountStatus } from "generated/prisma";
 
 @Injectable()
 export class AuthenticationService {
@@ -48,7 +50,7 @@ export class AuthenticationService {
             );
         }
 
-        const passwordValid = checkPassword(password, user.password);
+        const passwordValid = checkPassword(password, user.password!);
 
         if (user && passwordValid) {
             return user;
@@ -74,20 +76,28 @@ export class AuthenticationService {
         };
     }
 
-    async googleLogin(user: any) {
-        if (!user) {
+    async googleLogin(userDTO: GoogleLoginPayload) {
+        if (!userDTO) {
             return { message: "No user from Google" };
         }
 
-        // Here you can:
-        // 1. Check if user exists in DB
-        // 2. If not, create a new one
-        // 3. Generate JWT and return
+        let user = await this.prisma.user.findUnique({
+            where: {
+                email: userDTO.email,
+            },
+        });
 
-        return {
-            message: "User info from Google",
-            user,
-        };
+        if (!user) {
+            user = await this.prisma.user.create({
+                data: {
+                    email: userDTO.email,
+                    name: userDTO.firstName + " " + userDTO.lastName,
+                    accountStatus: AccountStatus.REVIEWING, // Default status as per schema
+                },
+            });
+        }
+
+        return this.login(user);
     }
 
     async register(createAuthenticationDto: CreateAuthenticationDto) {
