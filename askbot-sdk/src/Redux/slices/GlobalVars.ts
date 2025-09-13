@@ -2,18 +2,10 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 type initGlobalVars = {
     botUI: boolean
-    auth: {
-        isLoading: boolean,
-        isAuthenticated: boolean,
-    }
 };
 
 const initialState: initGlobalVars = {
     botUI: false,
-    auth: {
-        isLoading: true,
-        isAuthenticated: false,
-    }
 };
 
 export const Slice = createSlice({
@@ -23,9 +15,6 @@ export const Slice = createSlice({
         setBotUI: (state, action: PayloadAction<initGlobalVars["botUI"]>) => {
             state.botUI = action.payload
         },
-        setAuth: (state, action: PayloadAction<initGlobalVars["auth"]>) => {
-            state.auth = action.payload
-        }
     },
 });
 
