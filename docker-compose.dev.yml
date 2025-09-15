@@ -28,11 +28,8 @@ services:
       context: ./server
       dockerfile: Dockerfile.dev
     container_name: askzoie-server-dev
-    environment:
-      DATABASE_URL: postgres://zoie:zoie@postgres:5432/chatbotdb
-      PORT: 3000
-      FRONTEND_URL: "http://localhost:5173/"
-      NODE_ENV: development
+    env_file:
+      - ./server/.env
     ports:
       - "3000:3000"
     volumes:
@@ -44,6 +41,12 @@ services:
     networks:
       - ask-zoie-net
     command: npm run start:dev
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   client:
     build:
