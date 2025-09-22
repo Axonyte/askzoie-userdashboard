@@ -17,8 +17,11 @@ COPY . .
 # Generate Prisma client
 RUN npx prisma generate
 
+# Make the startup script executable
+RUN chmod +x ./scripts/start-dev.sh
+
 # Expose port
 EXPOSE 3000
 
-# Start development server
-CMD ["npm", "run", "start:dev"]
+# Start development server with database migration
+CMD ["./scripts/start-dev.sh"]

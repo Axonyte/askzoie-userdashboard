@@ -28,11 +28,8 @@ services:
       context: ./server
       dockerfile: Dockerfile
     container_name: askzoie-server
-    environment:
-      DATABASE_URL: postgres://zoie:zoie@postgres:5432/chatbotdb
-      PORT: 3000
-      FRONTEND_URL: "http://localhost:80/"
-      NODE_ENV: production
+    env_file:
+      - ./server/.env
     ports:
       - "3000:3000"
     depends_on:
@@ -52,6 +49,8 @@ services:
       context: ./client
       dockerfile: Dockerfile
     container_name: askzoie-client
+    environment:
+      VITE_API_URL: http://localhost:3000
     ports:
       - "5173:5173"
     depends_on:

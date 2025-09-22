@@ -106,7 +106,7 @@ export class AuthService {
     /**
      * Register new user
      */
-    register() {
+    registerLocal() {
         try {
             const navigate = useNavigate()
             return useMutation<

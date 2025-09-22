@@ -117,10 +117,19 @@ export class BotController {
         return await this.botService.refreshAccessToken(refreshToken);
     }
 
-    @Get("test")
+    @Post("chat")
     @UseGuards(BotGuard)
-    async test(@BotProfileId() id: string) {
-        console.log(id);
-        return;
+    chatWithBot(@BotProfileId() id: string, @Body("message") message: string) {
+        return {
+            botId: id,
+            userMessage: message ?? "User message",
+            botMessage: "message from bot",
+        };
+    }
+
+    @Get("auth")
+    @UseGuards(BotGuard)
+    auth(@BotProfileId() id: string) {
+        return this.botService.fetchUserBotById(id);
     }
 }

@@ -27,3 +27,4 @@ dist-ssr
 
 # Prisma migrations
 */prisma/migrations
+google-oauth.json
