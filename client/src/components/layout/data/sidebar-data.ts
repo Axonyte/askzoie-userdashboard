@@ -74,6 +74,11 @@ export const sidebarData: SidebarData = {
                     url: '/plans',
                     icon: IconCalendarDollar,
                 },
+                {
+                    title: 'Assistant Integration',
+                    url: '/assistant-integration',
+                    icon: IconCalendarDollar,
+                },
                 // {
                 //   title: 'Tasks',
                 //   url: '/tasks',
