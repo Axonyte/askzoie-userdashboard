@@ -1,11 +1,9 @@
-# app/services/rag_service.py
 import os
 import io
+import uuid
 from typing import List, Tuple, Optional
 
-import numpy as np
 from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity  # keep fallback
 from PyPDF2 import PdfReader
 from dotenv import load_dotenv
 from pinecone import Pinecone, ServerlessSpec
@@ -24,7 +22,8 @@ PINECONE_INDEX = os.getenv("PINECONE_INDEX", "rag-index")
 _model: Optional[SentenceTransformer] = None
 
 
-def get_model():
+def get_model() -> SentenceTransformer:
+    """Lazy load the embedding model"""
     global _model
     if _model is None:
         _model = SentenceTransformer(EMBED_MODEL)
@@ -47,6 +46,7 @@ index = pc.Index(PINECONE_INDEX)
 
 
 def extract_text_from_pdf_bytes(pdf_bytes: bytes) -> str:
+    """Extract text from PDF file bytes"""
     reader = PdfReader(io.BytesIO(pdf_bytes))
     texts = []
     for page in reader.pages:
@@ -60,6 +60,7 @@ def extract_text_from_pdf_bytes(pdf_bytes: bytes) -> str:
 
 
 def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> List[str]:
+    """Split text into overlapping chunks"""
     text = text.replace("\r\n", "\n")
     tokens = text.split()
     chunks = []
@@ -71,37 +72,50 @@ def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVE
     return chunks
 
 
-def build_user_store_from_pdf_bytes(user_id: str, pdf_bytes: bytes):
+def build_bot_store_from_pdf_bytes(bot_id: str, pdf_bytes: bytes):
+    """Build vector store for a bot from a PDF"""
     text = extract_text_from_pdf_bytes(pdf_bytes)
     chunks = chunk_text(text)
+
+    if not chunks:
+        return {"bot_id": bot_id, "chunks": 0}
+
     model = get_model()
     embeddings = model.encode(chunks, show_progress_bar=False, convert_to_numpy=True)
+
+    # generate unique doc id
+    doc_id = str(uuid.uuid4())
 
     # upsert into Pinecone
     vectors = []
     for i, emb in enumerate(embeddings):
         vectors.append({
-            "id": f"{user_id}-{i}",
+            "id": f"{bot_id}-{doc_id}-{i}",
             "values": emb.tolist(),
-            "metadata": {"user_id": user_id, "chunk": chunks[i]},
+            "metadata": {
+                "bot_id": bot_id,
+                "doc_id": doc_id,
+                "chunk": chunks[i]
+            },
         })
     index.upsert(vectors=vectors)
-    return {"user_id": user_id, "chunks": len(chunks)}
+    return {"bot_id": bot_id, "doc_id": doc_id, "chunks": len(chunks)}
 
 
-def add_pdf_to_user_store(user_id: str, pdf_bytes: bytes):
-    # just reuse build method (since Pinecone can store multiple docs for same user)
-    return build_user_store_from_pdf_bytes(user_id, pdf_bytes)
+def add_pdf_to_bot_store(bot_id: str, pdf_bytes: bytes):
+    """Add another PDF for the same bot"""
+    return build_bot_store_from_pdf_bytes(bot_id, pdf_bytes)
 
 
-def retrieve(user_id: str, query: str, top_k: int = 3) -> List[Tuple[str, float]]:
+def retrieve(bot_id: str, query: str, top_k: int = 3) -> List[Tuple[str, float]]:
+    """Retrieve top-k chunks for a query across all PDFs of a bot"""
     model = get_model()
     q_emb = model.encode([query], convert_to_numpy=True)[0]
 
     res = index.query(
         vector=q_emb.tolist(),
         top_k=top_k,
-        filter={"user_id": {"$eq": user_id}},
+        filter={"bot_id": {"$eq": bot_id}},
         include_metadata=True,
     )
 
@@ -112,6 +126,7 @@ def retrieve(user_id: str, query: str, top_k: int = 3) -> List[Tuple[str, float]
 
 
 def is_within_scope(ranked: List[Tuple[str, float]], threshold: float = SIMILARITY_THRESHOLD) -> bool:
+    """Check if top similarity score passes threshold"""
     if not ranked:
         return False
     top_sim = ranked[0][1]
