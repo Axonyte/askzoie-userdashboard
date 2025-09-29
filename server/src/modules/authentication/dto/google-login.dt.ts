@@ -4,4 +4,5 @@ export type GoogleLoginPayload = {
     lastName: string;
     picture: string;
     accessToken: string;
+    refreshToken: string;
 };

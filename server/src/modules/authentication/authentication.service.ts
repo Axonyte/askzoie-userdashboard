@@ -97,7 +97,15 @@ export class AuthenticationService {
         if (!user?.strategies.includes(AuthStrategy.GOOGLE)) {
             await this.prisma.user.update({
                 where: { id: user?.id },
-                data: { strategies: { push: AuthStrategy.GOOGLE } },
+                data: {
+                    strategies: { push: AuthStrategy.GOOGLE },
+                    GoogleToken: {
+                        create: {
+                            accessToken: userDTO.accessToken,
+                            refreshToken: userDTO.refreshToken,
+                        },
+                    },
+                },
             });
         }
 
@@ -108,6 +116,12 @@ export class AuthenticationService {
                     name: userDTO.firstName + " " + userDTO.lastName,
                     accountStatus: AccountStatus.REVIEWING, // Default status as per schema
                     strategies: [AuthStrategy.GOOGLE],
+                    GoogleToken: {
+                        create: {
+                            accessToken: userDTO.accessToken,
+                            refreshToken: userDTO.refreshToken,
+                        },
+                    },
                 },
             });
         }

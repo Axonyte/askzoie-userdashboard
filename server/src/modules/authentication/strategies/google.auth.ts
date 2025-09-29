@@ -10,7 +10,13 @@ export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
             clientID: configService.get<string>("GOOGLE_CLIENT_ID"),
             clientSecret: configService.get<string>("GOOGLE_CLIENT_SECRET"),
             callbackURL: configService.get<string>("GOOGLE_AUTH_CALLBACK_URL"),
-            scope: ["email", "profile"],
+            scope: [
+                "email",
+                "profile",
+                "https://www.googleapis.com/auth/calendar",
+            ],
+            accessType: "offline", // ✅ critical: ensures refreshToken is issued
+            prompt: "consent", // ✅ ensures you always get refreshToken (first time)
         });
     }
 
@@ -27,6 +33,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
             lastName: name.familyName,
             picture: photos[0].value,
             accessToken,
+            refreshToken
         };
         done(null, user);
     }

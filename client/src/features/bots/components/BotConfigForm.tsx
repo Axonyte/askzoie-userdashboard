@@ -12,7 +12,6 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { BotProfile } from '../types/botProfile'
 
 interface BotConfigFormProps {
     botId: string
