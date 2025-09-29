@@ -50,7 +50,14 @@ export class AuthenticationService {
             );
         }
 
-        const passwordValid = checkPassword(password, user.password!);
+        if (!user.password) {
+            throw new HttpException(
+                "You didn't register using email. Please try logging in using google.",
+                HttpStatus.BAD_REQUEST
+            );
+        }
+
+        const passwordValid = checkPassword(password, user.password);
 
         if (user && passwordValid) {
             return user;
