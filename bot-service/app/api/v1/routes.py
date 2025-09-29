@@ -1,47 +1,46 @@
-from fastapi import APIRouter, UploadFile, File, Form
-from fastapi.responses import JSONResponse
+from typing import List
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 
 from app.services.rag_service import (
-    build_user_store_from_pdf_bytes,
-    add_pdf_to_user_store,
+    add_pdf_to_bot_store,
     retrieve,
     is_within_scope,
 )
 
 router = APIRouter(prefix="/rag", tags=["RAG"])
 
-
-@router.post("/upload/{user_id}")
-async def upload_pdf(user_id: str, file: UploadFile = File(...)):
+@router.post("/upload/{bot_id}")
+async def upload_pdfs(bot_id: str, files: List[UploadFile] = File(...)):
     """
-    Upload a PDF for a user, store embeddings in Pinecone
+    Upload multiple PDFs for a bot, store embeddings in Pinecone
     """
-    pdf_bytes = await file.read()
     try:
-        result = add_pdf_to_user_store(user_id, pdf_bytes)
-        return JSONResponse(content={"message": "PDF processed", "result": result})
+        results = []
+        for file in files:
+            pdf_bytes = await file.read()
+            result = add_pdf_to_bot_store(bot_id, pdf_bytes)
+            results.append({"filename": file.filename, **result})
+        return {"message": "PDFs processed", "results": results}
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/query/{user_id}")
-async def query(user_id: str, question: str = Form(...)):
+@router.post("/query/{bot_id}")
+async def query(bot_id: str, question: str = Form(...)):
     """
-    Ask a question for a given user
+    Ask a question for a given bot
     """
     try:
-        results = retrieve(user_id, question, top_k=3)
+        results = retrieve(bot_id, question, top_k=3)
+
+        if not results:
+            return {"question": question, "answer": "No results found"}
+
         if is_within_scope(results):
-            return JSONResponse(
-                content={
-                    "question": question,
-                    "results": results,
-                    "answer": results[0][0],  # returning top chunk as "answer"
-                }
-            )
+            answer = results[0][0] if results[0] else "No answer available"
+            return {"question": question, "results": results, "answer": answer}
         else:
-            return JSONResponse(
-                content={"question": question, "answer": "Out of my scope"}
-            )
+            return {"question": question, "answer": "Out of my scope"}
+
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+        raise HTTPException(status_code=500, detail=str(e))
