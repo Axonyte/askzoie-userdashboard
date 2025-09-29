@@ -96,12 +96,28 @@ export function BotConfigForm({
             return res.data
         },
         onSuccess: (data, variables) => {
-            navigator.clipboard.writeText(data.refreshToken).then(() => {
-                toast.success(`${variables.name} token copied to clipboard!`, {
-                    description:
-                        'You can now use this token to embed your bot.',
+            navigator.clipboard
+                .writeText(
+                    `
+<script>
+    window.onload = () => {
+        const askBot = new AskBot();
+        askBot.createBot({
+            token: "${data.refreshToken}",
+        });
+    };
+</script>
+<script type="module" src="//sdk//cdn//"></script>`
+                )
+                .then(() => {
+                    toast.success(
+                        `${variables.name} token copied to clipboard!`,
+                        {
+                            description:
+                                'You can now use this token to embed your bot.',
+                        }
+                    )
                 })
-            })
             onClose()
         },
         onError: (err: any) => {

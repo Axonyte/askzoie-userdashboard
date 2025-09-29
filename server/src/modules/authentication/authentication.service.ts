@@ -19,7 +19,7 @@ import { TUserPayload } from "../user/types/UserPayload";
 import { MailerService } from "@nestjs-modules/mailer";
 import { randomBytes } from "crypto";
 import { GoogleLoginPayload } from "./dto/google-login.dt";
-import { AccountStatus } from "generated/prisma";
+import { AccountStatus, AuthStrategy } from "generated/prisma";
 
 @Injectable()
 export class AuthenticationService {
@@ -94,12 +94,20 @@ export class AuthenticationService {
             },
         });
 
+        if (!user?.strategies.includes(AuthStrategy.GOOGLE)) {
+            await this.prisma.user.update({
+                where: { id: user?.id },
+                data: { strategies: { push: AuthStrategy.GOOGLE } },
+            });
+        }
+
         if (!user) {
             user = await this.prisma.user.create({
                 data: {
                     email: userDTO.email,
                     name: userDTO.firstName + " " + userDTO.lastName,
                     accountStatus: AccountStatus.REVIEWING, // Default status as per schema
+                    strategies: [AuthStrategy.GOOGLE],
                 },
             });
         }
@@ -128,7 +136,8 @@ export class AuthenticationService {
                 email: createAuthenticationDto.email,
                 name: createAuthenticationDto.name,
                 password: hashedPassword,
-                accountStatus: "REVIEWING", // Default status as per schema
+                accountStatus: "REVIEWING", // Default status as per schema,
+                strategies: [AuthStrategy.LOCAL],
             },
         });
 

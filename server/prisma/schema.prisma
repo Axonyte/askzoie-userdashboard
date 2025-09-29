@@ -30,6 +30,7 @@ model User {
     botPersonas    BotPersona[]
     AllowedDomains AllowedDomains[]
     BotProfiles    BotProfile[]
+    strategies     AuthStrategy[]
 }
 
 model BotPersona {
@@ -123,6 +124,11 @@ enum AccountStatus {
     APPROVED
     SUSPENDED
     REJECTED
+}
+
+enum AuthStrategy {
+    GOOGLE
+    LOCAL
 }
 
 enum Plan {
