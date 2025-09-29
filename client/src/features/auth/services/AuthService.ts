@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { api } from '@/config/apiClient'
@@ -65,85 +66,80 @@ export class AuthService {
 
     login() {
         const navigate = useNavigate()
-        try {
-            return useMutation<
-                any,
-                Error,
-                { email: string; password: string },
-                unknown
-            >({
-                mutationFn: async (credentials) => {
-                    const response = (
-                        await api.post('/auth/login', credentials)
-                    ).data
+        return useMutation<
+            any,
+            Error,
+            { email: string; password: string },
+            unknown
+        >({
+            mutationFn: async (credentials) => {
+                const response = await api.post('/auth/login', credentials)
 
-                    // Store the token and user data
-                    const { setAccessToken, setUser } =
-                        useAuthStore.getState().auth
+                // Store the token and user data
+                const { setAccessToken, setUser } = useAuthStore.getState().auth
 
-                    setAccessToken(response.accessToken)
-                    const user = this.extractUserFromToken(response.accessToken)
-                    setUser(user)
+                setAccessToken(response.data.accessToken)
+                const user = this.extractUserFromToken(
+                    response.data.accessToken
+                )
+                setUser(user)
 
-                    toast.success('Login successful!')
+                toast.success('Login successful!')
 
-                    return response
-                },
-                onSuccess: () => {
-                    // Navigate to dashboard after successful login
-                    navigate({ to: '/' })
-                },
-            })
-        } catch (error: any) {
-            const errorMessage =
-                error.response?.data?.message ||
-                'Login failed. Please try again.'
-            toast.error(errorMessage)
-            throw error
-        }
+                return response.data
+            },
+            onSuccess: () => {
+                // Navigate to dashboard after successful login
+                navigate({ to: '/' })
+            },
+            onError(error, variables, context) {
+                toast.error(
+                    ((error as AxiosError).response?.data as any).message ??
+                        'Some Error Occured'
+                )
+                console.log(error)
+            },
+        })
     }
 
     /**
      * Register new user
      */
     registerLocal() {
-        try {
-            const navigate = useNavigate()
-            return useMutation<
-                any,
-                Error,
-                { email: string; password: string },
-                unknown
-            >({
-                mutationFn: async (credentials) => {
-                    const response = (
-                        await api.post('/auth/register', credentials)
-                    ).data
+        const navigate = useNavigate()
+        return useMutation<
+            any,
+            Error,
+            { email: string; password: string },
+            unknown
+        >({
+            mutationFn: async (credentials) => {
+                const response = (await api.post('/auth/register', credentials))
+                    .data
 
-                    // Store the token and user data
-                    const { setAccessToken, setUser } =
-                        useAuthStore.getState().auth
+                // Store the token and user data
+                const { setAccessToken, setUser } = useAuthStore.getState().auth
 
-                    setAccessToken(response.accessToken)
-                    const user = this.extractUserFromToken(response.accessToken)
-                    setUser(user)
+                setAccessToken(response.accessToken)
+                const user = this.extractUserFromToken(response.accessToken)
+                setUser(user)
 
-                    toast.success('Registration successful!')
+                toast.success('Registration successful!')
 
-                    return response
-                },
-                onSuccess: () => {
-                    // Navigate to dashboard after successful login
-                    navigate({ to: '/' })
-                },
-            })
-        } catch (error: any) {
-            const errorMessage =
-                error.response?.data?.message ||
-                'Registration failed. Please try again.'
-            toast.error(errorMessage)
-            throw error
-        }
+                return response
+            },
+            onSuccess: () => {
+                // Navigate to dashboard after successful login
+                navigate({ to: '/' })
+            },
+            onError(error, variables, context) {
+                toast.error(
+                    ((error as AxiosError).response?.data as any).message ??
+                        'Some Error Occured'
+                )
+                console.log(error)
+            },
+        })
     }
 
     /**

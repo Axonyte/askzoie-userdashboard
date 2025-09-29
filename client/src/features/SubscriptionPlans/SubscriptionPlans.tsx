@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Check, Crown, Zap } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -8,6 +9,8 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card'
+import ConfirmationDialog from './ConfirmationModal'
+import PayPalButton from './PaypalButton'
 
 function SubscriptionPlans() {
     const plans = [
@@ -25,6 +28,7 @@ function SubscriptionPlans() {
                 'Basic support',
                 'Standard response time',
             ],
+            paypalPlanId: null,
         },
         {
             name: 'Starter',
@@ -40,6 +44,7 @@ function SubscriptionPlans() {
                 'Email support',
                 'Priority response time',
             ],
+            paypalPlanId: 'P-2UM323407E317070JNDNHVWI',
         },
         {
             name: 'Growth',
@@ -56,6 +61,7 @@ function SubscriptionPlans() {
                 'Advanced features',
                 'API access',
             ],
+            paypalPlanId: null,
         },
         {
             name: 'Premium',
@@ -72,6 +78,7 @@ function SubscriptionPlans() {
                 'All advanced features',
                 'Custom integrations',
             ],
+            paypalPlanId: null,
         },
         {
             name: 'Enterprise',
@@ -88,99 +95,145 @@ function SubscriptionPlans() {
                 'Custom solutions',
                 'SLA guarantee',
             ],
+            paypalPlanId: null,
         },
     ]
+    const [selectedPlan, setSelectedPlan] = useState<any>(null)
+    const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+    const handleChoosePlan = (plan: any) => {
+        setSelectedPlan(plan)
+        setIsDialogOpen(true)
+    }
+
+    const closeDialog = () => {
+        setIsDialogOpen(false)
+        setSelectedPlan(null)
+    }
 
     return (
-        <div className='mx-auto w-full max-w-[1200px] p-6'>
-            <div className='mb-8 text-center'>
-                <h2 className='mb-2 text-3xl font-bold'>Choose Your Plan</h2>
-                <p className='text-muted-foreground'>
-                    Select the perfect plan for your needs
-                </p>
-            </div>
+        <>
+            <div className='mx-auto w-full max-w-[1200px] p-6'>
+                <div className='mb-8 text-center'>
+                    <h2 className='mb-2 text-3xl font-bold'>
+                        Choose Your Plan
+                    </h2>
+                    <p className='text-muted-foreground'>
+                        Select the perfect plan for your needs
+                    </p>
+                </div>
 
-            <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                {plans.map((plan, index) => (
-                    <Card
-                        key={index}
-                        className={`relative transition-all duration-300 hover:shadow-lg ${
-                            plan.popular
-                                ? 'border-primary scale-105 shadow-lg'
-                                : ''
-                        }`}
-                    >
-                        {plan.popular && (
-                            <Badge className='bg-primary absolute -top-3 left-1/2 -translate-x-1/2 transform'>
-                                Most Popular
-                            </Badge>
-                        )}
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                    {plans.map((plan, index) => (
+                        <Card
+                            key={index}
+                            className={`relative transition-all duration-300 hover:shadow-lg ${
+                                plan.popular
+                                    ? 'border-primary scale-105 shadow-lg'
+                                    : ''
+                            }`}
+                        >
+                            {plan.popular && (
+                                <Badge className='bg-primary absolute -top-3 left-1/2 -translate-x-1/2 transform'>
+                                    Most Popular
+                                </Badge>
+                            )}
 
-                        {plan.isDefault && (
-                            <Badge className='absolute -top-3 left-1/2 -translate-x-1/2 transform bg-green-600'>
-                                Current Plan
-                            </Badge>
-                        )}
+                            {plan.isDefault && (
+                                <Badge className='absolute -top-3 left-1/2 -translate-x-1/2 transform bg-green-600'>
+                                    Current Plan
+                                </Badge>
+                            )}
 
-                        <CardHeader className='pb-4 text-center'>
-                            <div className='text-primary mb-2 flex justify-center'>
-                                {plan.icon}
-                            </div>
-                            <CardTitle className='text-xl'>
-                                {plan.name}
-                            </CardTitle>
-                            <CardDescription>
-                                {plan.description}
-                            </CardDescription>
-                            <div className='mt-4'>
-                                <span className='text-3xl font-bold'>
-                                    {plan.price}
-                                </span>
-                                {plan.priceAmount > 0 && (
-                                    <span className='text-muted-foreground'>
-                                        /month
+                            <CardHeader className='pb-4 text-center'>
+                                <div className='text-primary mb-2 flex justify-center'>
+                                    {plan.icon}
+                                </div>
+                                <CardTitle className='text-xl'>
+                                    {plan.name}
+                                </CardTitle>
+                                <CardDescription>
+                                    {plan.description}
+                                </CardDescription>
+                                <div className='mt-4'>
+                                    <span className='text-3xl font-bold'>
+                                        {plan.price}
                                     </span>
-                                )}
-                            </div>
-                            <p className='text-muted-foreground mt-1 text-sm'>
-                                {plan.prompts} prompts/month
-                            </p>
-                        </CardHeader>
+                                    {plan.priceAmount > 0 && (
+                                        <span className='text-muted-foreground'>
+                                            /month
+                                        </span>
+                                    )}
+                                </div>
+                                <p className='text-muted-foreground mt-1 text-sm'>
+                                    {plan.prompts} prompts/month
+                                </p>
+                            </CardHeader>
 
-                        <CardContent className='flex h-full flex-col'>
-                            <ul className='mb-6 flex-1'>
-                                {plan.features.map((feature, featureIndex) => (
-                                    <li
-                                        key={featureIndex}
-                                        className='flex items-center text-sm'
-                                    >
-                                        <Check className='mr-3 h-4 w-4 flex-shrink-0 text-green-500' />
-                                        {feature}
-                                    </li>
-                                ))}
-                            </ul>
+                            <CardContent className='flex h-full flex-col'>
+                                <ul className='mb-6 flex-1'>
+                                    {plan.features.map(
+                                        (feature, featureIndex) => (
+                                            <li
+                                                key={featureIndex}
+                                                className='flex items-center text-sm'
+                                            >
+                                                <Check className='mr-3 h-4 w-4 flex-shrink-0 text-green-500' />
+                                                {feature}
+                                            </li>
+                                        )
+                                    )}
+                                </ul>
 
-                            <Button
-                                className='w-full'
-                                variant={
-                                    plan.isDefault
-                                        ? 'outline'
-                                        : plan.popular
-                                          ? 'default'
-                                          : 'outline'
-                                }
-                                disabled={plan.isDefault}
-                            >
-                                {plan.isDefault
-                                    ? 'Current Plan'
-                                    : 'Choose Plan'}
-                            </Button>
-                        </CardContent>
-                    </Card>
-                ))}
+                                <Button
+                                    className='w-full'
+                                    variant={
+                                        plan.isDefault
+                                            ? 'outline'
+                                            : plan.popular
+                                              ? 'default'
+                                              : 'outline'
+                                    }
+                                    disabled={plan.isDefault}
+                                    onClick={() => handleChoosePlan(plan)}
+                                >
+                                    {plan.isDefault
+                                        ? 'Current Plan'
+                                        : 'Choose Plan'}
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
             </div>
-        </div>
+            <ConfirmationDialog
+                plan={selectedPlan}
+                isOpen={isDialogOpen}
+                onClose={closeDialog}
+            />
+        </>
     )
 }
 
 export default SubscriptionPlans
+// <div id="paypal-button-container-P-2UM323407E317070JNDNHVWI"></div>
+// <script src="https://www.paypal.com/sdk/js?client-id=AT9kz6gDXnyRZ-PI2w2Ayb0OP5b-rTAU9_meLw0lZxhLDuhRJqSEFCQvfBy6Q8dWTIYGfbYiJ7AhBGga&vault=true&intent=subscription" data-sdk-integration-source="button-factory"></script>
+// <script>
+//   paypal.Buttons({
+//       style: {
+//           shape: 'rect',
+//           color: 'gold',
+//           layout: 'vertical',
+//           label: 'subscribe'
+//       },
+//       createSubscription: function(data, actions) {
+//         return actions.subscription.create({
+//           /* Creates the subscription */
+//           plan_id: 'P-2UM323407E317070JNDNHVWI'
+//         });
+//       },
+//       onApprove: function(data, actions) {
+//         alert(data.subscriptionID); // You can add optional success message for the subscriber here
+//       }
+//   }).render('#paypal-button-container-P-2UM323407E317070JNDNHVWI'); // Renders the PayPal button
+// </script>
