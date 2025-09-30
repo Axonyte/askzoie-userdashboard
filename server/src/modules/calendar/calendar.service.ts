@@ -8,15 +8,7 @@ import { DeleteEventDto } from "./dto/delete-event.dto";
 
 @Injectable()
 export class CalendarService {
-    private oauth2Client;
-
-    constructor(private readonly prisma: PrismaService) {
-        this.oauth2Client = new google.auth.OAuth2(
-            process.env.GOOGLE_CLIENT_ID,
-            process.env.GOOGLE_CLIENT_SECRET,
-            "http://localhost:5173/"
-        );
-    }
+    constructor(private readonly prisma: PrismaService) {}
 
     private async getUserTokens(userId: string) {
         const tokens = await this.prisma.googleToken.findUnique({
