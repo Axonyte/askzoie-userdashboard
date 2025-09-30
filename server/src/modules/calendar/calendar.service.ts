@@ -30,16 +30,6 @@ export class CalendarService {
         return tokens;
     }
 
-    private setCredentials(tokens: {
-        accessToken: string;
-        refreshToken: string;
-    }) {
-        this.oauth2Client.setCredentials({
-            access_token: tokens.accessToken,
-            refresh_token: tokens.refreshToken,
-        });
-    }
-
     private async getAuthClient(userId: string) {
         // 🔑 Fetch user tokens from DB
         const tokens = await this.getUserTokens(userId);
