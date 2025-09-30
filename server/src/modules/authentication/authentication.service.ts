@@ -72,6 +72,7 @@ export class AuthenticationService {
             name: user.name,
             email: user.email,
             accountStatus: user.accountStatus,
+            authStrategy: user.strategies,
         };
 
         return {
@@ -164,6 +165,7 @@ export class AuthenticationService {
             name: user.name,
             email: user.email,
             accountStatus: user.accountStatus,
+            authStrategy: user.strategies,
         };
 
         // Return user data with token (excluding password)

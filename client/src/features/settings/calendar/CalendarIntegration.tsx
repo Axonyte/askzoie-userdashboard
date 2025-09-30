@@ -1,5 +1,5 @@
-import { useState } from 'react'
 import { Calendar, CheckCircle2, XCircle } from 'lucide-react'
+import { useAuthStore } from '@/stores/authStore'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -11,28 +11,15 @@ import {
 } from '@/components/ui/card'
 
 function CalendarIntegration() {
-    // Simulated integration status - replace with actual API call
-    const [isIntegrated, setIsIntegrated] = useState(false)
-    const [isLoading, setIsLoading] = useState(false)
+    const user = useAuthStore((auth) => auth.auth.user)
+    const strategies = user?.authStrategy || []
 
-    const handleConnect = async () => {
-        setIsLoading(true)
-        // Simulate API call
-        setTimeout(() => {
-            // Here you would typically redirect to Google OAuth
-            // window.location.href = 'your-google-oauth-url'
-            console.log('Initiating Google Calendar connection...')
-            setIsLoading(false)
-        }, 1000)
-    }
+    // Check if Google is in the auth strategies
+    const isIntegrated = strategies.includes('GOOGLE')
 
-    const handleDisconnect = async () => {
-        setIsLoading(true)
-        // Simulate API call
-        setTimeout(() => {
-            setIsIntegrated(false)
-            setIsLoading(false)
-        }, 1000)
+    const handleConnect = () => {
+        // Redirect to Google OAuth for calendar integration
+        window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`
     }
 
     return (
@@ -79,15 +66,13 @@ function CalendarIntegration() {
                             </div>
                         </div>
 
-                        {isIntegrated && (
+                        {isIntegrated ? (
                             <div className='text-muted-foreground space-y-2 text-sm'>
                                 <p>✓ Calendar events synced</p>
                                 <p>✓ Automatic event creation enabled</p>
                                 <p>✓ Real-time updates active</p>
                             </div>
-                        )}
-
-                        {!isIntegrated && (
+                        ) : (
                             <div className='text-muted-foreground space-y-2 text-sm'>
                                 <p>• Sync your calendar events</p>
                                 <p>• Create events automatically</p>
@@ -96,33 +81,17 @@ function CalendarIntegration() {
                         )}
                     </div>
 
-                    {isIntegrated ? (
-                        <Button
-                            className='w-full'
-                            variant='outline'
-                            onClick={handleDisconnect}
-                            disabled={isLoading}
-                        >
-                            {isLoading
-                                ? 'Disconnecting...'
-                                : 'Disconnect Account'}
-                        </Button>
-                    ) : (
-                        <Button
-                            className='w-full'
-                            onClick={handleConnect}
-                            disabled={isLoading}
-                        >
-                            {isLoading
-                                ? 'Connecting...'
-                                : 'Connect Google Calendar'}
-                        </Button>
+                    {!isIntegrated && (
+                        <>
+                            <Button className='w-full' onClick={handleConnect}>
+                                Connect Google Calendar
+                            </Button>
+                            <p className='text-muted-foreground text-center text-xs'>
+                                By connecting, you agree to grant access to your
+                                calendar data
+                            </p>
+                        </>
                     )}
-
-                    <p className='text-muted-foreground text-center text-xs'>
-                        By connecting, you agree to grant access to your
-                        calendar data
-                    </p>
                 </CardContent>
             </Card>
         </div>
