@@ -94,11 +94,13 @@ export class AuthenticationService {
             },
         });
 
-        if (!user?.strategies.includes(AuthStrategy.GOOGLE)) {
-            await this.prisma.user.update({
-                where: { id: user?.id },
+        if (!user) {
+            user = await this.prisma.user.create({
                 data: {
-                    strategies: { push: AuthStrategy.GOOGLE },
+                    email: userDTO.email,
+                    name: userDTO.firstName + " " + userDTO.lastName,
+                    accountStatus: AccountStatus.REVIEWING, // Default status as per schema
+                    strategies: [AuthStrategy.GOOGLE],
                     GoogleToken: {
                         create: {
                             accessToken: userDTO.accessToken,
@@ -109,13 +111,11 @@ export class AuthenticationService {
             });
         }
 
-        if (!user) {
-            user = await this.prisma.user.create({
+        if (!user?.strategies.includes(AuthStrategy.GOOGLE)) {
+            await this.prisma.user.update({
+                where: { id: user?.id },
                 data: {
-                    email: userDTO.email,
-                    name: userDTO.firstName + " " + userDTO.lastName,
-                    accountStatus: AccountStatus.REVIEWING, // Default status as per schema
-                    strategies: [AuthStrategy.GOOGLE],
+                    strategies: { push: AuthStrategy.GOOGLE },
                     GoogleToken: {
                         create: {
                             accessToken: userDTO.accessToken,

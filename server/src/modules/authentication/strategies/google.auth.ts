@@ -15,9 +15,15 @@ export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
                 "profile",
                 "https://www.googleapis.com/auth/calendar",
             ],
-            accessType: "offline", // ✅ critical: ensures refreshToken is issued
-            prompt: "consent", // ✅ ensures you always get refreshToken (first time)
         });
+    }
+
+    // ✅ Force refreshToken every time
+    authorizationParams(): { [key: string]: string } {
+        return {
+            access_type: "offline", // ensures refreshToken is issued
+            prompt: "consent", // forces re-consent so refreshToken is returned
+        };
     }
 
     async validate(
@@ -27,14 +33,16 @@ export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
         done: VerifyCallback
     ): Promise<any> {
         const { name, emails, photos } = profile;
+
         const user = {
             email: emails[0].value,
-            firstName: name.givenName,
-            lastName: name.familyName,
-            picture: photos[0].value,
+            firstName: name?.givenName,
+            lastName: name?.familyName,
+            picture: photos[0]?.value,
             accessToken,
-            refreshToken
+            refreshToken, // ✅ will no longer be undefined
         };
+
         done(null, user);
     }
 }
