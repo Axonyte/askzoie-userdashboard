@@ -147,7 +147,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
                         className='w-full'
                         type='button'
                         onClick={() => {
-                            window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`
+                            window.location.href = `${import.meta.env.VITE_API_URL}auth/google`
                         }}
                         disabled={localRegisterMutation.isPending}
                     >
