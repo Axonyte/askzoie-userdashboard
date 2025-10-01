@@ -1,13 +1,16 @@
 from typing import List
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi.responses import HTMLResponse
 
 from app.services.rag_service import (
     add_pdf_to_bot_store,
     retrieve,
     is_within_scope,
+    generate_answer,        # existing text generator
 )
 
 router = APIRouter(prefix="/rag", tags=["RAG"])
+
 
 @router.post("/upload/{bot_id}")
 async def upload_pdfs(bot_id: str, files: List[UploadFile] = File(...)):
@@ -28,19 +31,15 @@ async def upload_pdfs(bot_id: str, files: List[UploadFile] = File(...)):
 @router.post("/query/{bot_id}")
 async def query(bot_id: str, question: str = Form(...)):
     """
-    Ask a question for a given bot
+    Ask a question for a given bot (retrieval + OpenAI answer) - returns JSON
     """
     try:
-        results = retrieve(bot_id, question, top_k=3)
+        answer = generate_answer(bot_id, question, top_k=3)
 
-        if not results:
-            return {"question": question, "answer": "No results found"}
-
-        if is_within_scope(results):
-            answer = results[0][0] if results[0] else "No answer available"
-            return {"question": question, "results": results, "answer": answer}
-        else:
-            return {"question": question, "answer": "Out of my scope"}
+        return {
+            "question": question,
+            "answer": answer,
+        }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

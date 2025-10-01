@@ -3,10 +3,15 @@ import io
 import uuid
 from typing import List, Tuple, Optional
 
+import html
 from sentence_transformers import SentenceTransformer
 from PyPDF2 import PdfReader
 from dotenv import load_dotenv
 from pinecone import Pinecone, ServerlessSpec
+from openai import OpenAI
+
+from app.utils.agent_prompt import template 
+from app.tools.index import tools
 
 load_dotenv()
 
@@ -17,6 +22,7 @@ CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", 50))
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_INDEX = os.getenv("PINECONE_INDEX", "rag-index")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")  # NEW
 
 # initialize model (lazy loaded)
 _model: Optional[SentenceTransformer] = None
@@ -33,20 +39,21 @@ def get_model() -> SentenceTransformer:
 # --- Pinecone setup ---
 pc = Pinecone(api_key=PINECONE_API_KEY)
 
-# Create index if not exists
 if PINECONE_INDEX not in [i["name"] for i in pc.list_indexes()]:
     pc.create_index(
         name=PINECONE_INDEX,
-        dimension=384,  # dimension for all-MiniLM-L6-v2
+        dimension=384,
         metric="cosine",
         spec=ServerlessSpec(cloud="aws", region="us-east-1"),
     )
 
 index = pc.Index(PINECONE_INDEX)
 
+# --- OpenAI client ---
+client = OpenAI(api_key=OPENAI_API_KEY)  # NEW
+
 
 def extract_text_from_pdf_bytes(pdf_bytes: bytes) -> str:
-    """Extract text from PDF file bytes"""
     reader = PdfReader(io.BytesIO(pdf_bytes))
     texts = []
     for page in reader.pages:
@@ -60,7 +67,6 @@ def extract_text_from_pdf_bytes(pdf_bytes: bytes) -> str:
 
 
 def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> List[str]:
-    """Split text into overlapping chunks"""
     text = text.replace("\r\n", "\n")
     tokens = text.split()
     chunks = []
@@ -73,7 +79,6 @@ def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVE
 
 
 def build_bot_store_from_pdf_bytes(bot_id: str, pdf_bytes: bytes):
-    """Build vector store for a bot from a PDF"""
     text = extract_text_from_pdf_bytes(pdf_bytes)
     chunks = chunk_text(text)
 
@@ -83,10 +88,8 @@ def build_bot_store_from_pdf_bytes(bot_id: str, pdf_bytes: bytes):
     model = get_model()
     embeddings = model.encode(chunks, show_progress_bar=False, convert_to_numpy=True)
 
-    # generate unique doc id
     doc_id = str(uuid.uuid4())
 
-    # upsert into Pinecone
     vectors = []
     for i, emb in enumerate(embeddings):
         vectors.append({
@@ -103,12 +106,10 @@ def build_bot_store_from_pdf_bytes(bot_id: str, pdf_bytes: bytes):
 
 
 def add_pdf_to_bot_store(bot_id: str, pdf_bytes: bytes):
-    """Add another PDF for the same bot"""
     return build_bot_store_from_pdf_bytes(bot_id, pdf_bytes)
 
 
 def retrieve(bot_id: str, query: str, top_k: int = 3) -> List[Tuple[str, float]]:
-    """Retrieve top-k chunks for a query across all PDFs of a bot"""
     model = get_model()
     q_emb = model.encode([query], convert_to_numpy=True)[0]
 
@@ -126,8 +127,57 @@ def retrieve(bot_id: str, query: str, top_k: int = 3) -> List[Tuple[str, float]]
 
 
 def is_within_scope(ranked: List[Tuple[str, float]], threshold: float = SIMILARITY_THRESHOLD) -> bool:
-    """Check if top similarity score passes threshold"""
     if not ranked:
         return False
     top_sim = ranked[0][1]
     return top_sim >= threshold
+
+
+# --- NEW FUNCTION ---
+def generate_answer(bot_id: str, query: str, top_k: int = 3) -> str:
+    """
+    Retrieve chunks and generate final answer with OpenAI.
+    """
+    # ranked = retrieve(bot_id, query, top_k=top_k)
+
+    # # if chunks found
+    # context = "\n\n".join([chunk for chunk, score in ranked])
+
+    prompt = template.format(
+        tools=tools,
+        tool_names=["weather"],
+        chat_history="Human: hi i am hamza \nAI: Hello! How can I assist you today?",
+        input=query,
+        agent_scratchpad=get_agent_scratchpad([])
+    )
+
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are a helpful customer care bot."},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0.7,
+    )
+
+    try:
+        return response.choices[0].message.content.strip()
+    except Exception:
+        return "I'm sorry, I couldn't process your request at the moment. Please try again later."
+
+def get_agent_scratchpad(messages):
+    """
+    Extracts tool calls and tool outputs to form the agent_scratchpad.
+    This is critical for ReAct to function properly.
+
+    Args:
+        messages: List of conversation messages
+
+    Returns:
+        List of AI and Tool messages for the scratchpad
+    """
+    scratchpad = []
+    for msg in messages:
+        scratchpad.append(msg)
+    return scratchpad
