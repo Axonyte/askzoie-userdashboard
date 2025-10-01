@@ -8,6 +8,7 @@ import {
     IconChartBar,
     IconRobot,
 } from '@tabler/icons-react'
+import { CalendarDays } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
@@ -74,7 +75,7 @@ const sidebarNavItems = [
     },
     {
         title: 'Google Calendar',
-        icon: <IconRobot size={18} />,
+        icon: <CalendarDays size={18} />,
         href: '/settings/calendar',
     },
     //   {

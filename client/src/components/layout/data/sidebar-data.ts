@@ -22,7 +22,13 @@ import {
     IconChartBar,
     IconCalendarDollar,
 } from '@tabler/icons-react'
-import { AudioWaveform, Command, GalleryVerticalEnd, Bot } from 'lucide-react'
+import {
+    AudioWaveform,
+    Command,
+    GalleryVerticalEnd,
+    Bot,
+    CalendarDays,
+} from 'lucide-react'
 import { ClerkLogo } from '@/assets/clerk-logo'
 import { type SidebarData } from '../types'
 
@@ -203,6 +209,11 @@ export const sidebarData: SidebarData = {
                             title: 'Bots',
                             url: '/settings/bots',
                             icon: IconRobot,
+                        },
+                        {
+                            title: 'Calendar',
+                            url: '/settings/calendar',
+                            icon: CalendarDays,
                         },
                         // {
                         //   title: 'Account',

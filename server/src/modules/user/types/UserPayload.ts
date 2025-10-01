@@ -1,4 +1,4 @@
-import { AccountStatus } from "generated/prisma";
+import { AccountStatus, AuthStrategy } from "generated/prisma";
 import { JwtPayload } from "jsonwebtoken";
 
 export interface TUserPayload extends JwtPayload {
@@ -6,4 +6,5 @@ export interface TUserPayload extends JwtPayload {
     name: string;
     email: string;
     accountStatus: AccountStatus;
+    authStrategy: AuthStrategy[];
 }

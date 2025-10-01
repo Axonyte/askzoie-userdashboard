@@ -10,4 +10,7 @@ export const PUBLIC_ROUTES = [
     "/auth/reset-password",
     "/webhook",
     "/bot/refresh-access-token",
+    // calendar
+    "/calendar/event",
+    "/calendar/events",
 ];

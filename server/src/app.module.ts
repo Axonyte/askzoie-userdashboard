@@ -15,6 +15,8 @@ import { AllowedDomainsService } from './shared/services/allowed-domains/allowed
 import { ProfileModule } from './modules/profile/profile.module';
 import { MiscModule } from './modules/misc/misc.module';
 import { ApplicationSetupModule } from "./shared/services/application-setup/application-setup.module";
+import { CalendarModule } from './modules/calendar/calendar.module';
+import { WebhookModule } from './modules/webhook/webhook.module';
 
 @Module({
     imports: [
@@ -51,6 +53,8 @@ import { ApplicationSetupModule } from "./shared/services/application-setup/appl
         PaypalModule,
         ProfileModule,
         MiscModule,
+        CalendarModule,
+        WebhookModule,
     ],
     controllers: [AppController],
     providers: [AppService, AllowedDomainsService],
