@@ -8,7 +8,10 @@ from sentence_transformers import SentenceTransformer
 from PyPDF2 import PdfReader
 from dotenv import load_dotenv
 from pinecone import Pinecone, ServerlessSpec
-from openai import OpenAI  # NEW
+from openai import OpenAI
+
+from app.utils.agent_prompt import template 
+from app.tools.index import tools
 
 load_dotenv()
 
@@ -131,69 +134,23 @@ def is_within_scope(ranked: List[Tuple[str, float]], threshold: float = SIMILARI
 
 
 # --- NEW FUNCTION ---
-def generate_answer(bot_id: str, query: str, top_k: int = 3, strict_mode: bool = True) -> str:
+def generate_answer(bot_id: str, query: str, top_k: int = 3) -> str:
     """
     Retrieve chunks and generate final answer with OpenAI.
-    
-    - strict_mode=True  → Bot will ONLY answer using provided PDF context.
-    - strict_mode=False → Bot can also use general knowledge if context is missing.
     """
-    ranked = retrieve(bot_id, query, top_k=top_k)
+    # ranked = retrieve(bot_id, query, top_k=top_k)
 
-    if not ranked:
-        if strict_mode:
-            return "I’m sorry, but I couldn’t find any information about that in the documents you provided."
-        else:
-            # fallback: let model use general knowledge
-            prompt = f"""
-You are a polite and professional customer support assistant.
-Answer the customer’s question even if there is no provided context.
-Customer question: {query}
-Answer:
-"""
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": prompt},
-                ],
-                temperature=0.3,
-            )
-            try:
-                return response.choices[0].message.content.strip()
-            except Exception:
-                return "I’m sorry, I couldn’t process your request at the moment. Please try again later."
+    # # if chunks found
+    # context = "\n\n".join([chunk for chunk, score in ranked])
 
-    # if chunks found
-    context = "\n\n".join([chunk for chunk, score in ranked])
+    prompt = template.format(
+        tools=tools,
+        tool_names=["weather"],
+        chat_history="Human: hi i am hamza \nAI: Hello! How can I assist you today?",
+        input=query,
+        agent_scratchpad=get_agent_scratchpad([])
+    )
 
-    if strict_mode:
-        prompt = f"""
-You are a polite and professional customer support assistant.
-You must ONLY answer based on the provided context. 
-If the context does not contain enough information to answer the question, 
-politely say you don’t have that information.
-
-Context (knowledge base):
-{context}
-
-Customer question: {query}
-
-Answer:
-"""
-    else:
-        prompt = f"""
-You are a helpful customer support assistant.
-Prefer to answer based on the provided context, but you may also use your general knowledge 
-if the context does not have enough information.
-
-Context (knowledge base):
-{context}
-
-Customer question: {query}
-
-Answer:
-"""
 
     response = client.chat.completions.create(
         model="gpt-4o-mini",
@@ -201,10 +158,26 @@ Answer:
             {"role": "system", "content": "You are a helpful customer care bot."},
             {"role": "user", "content": prompt},
         ],
-        temperature=0.2,
+        temperature=0.7,
     )
 
     try:
         return response.choices[0].message.content.strip()
     except Exception:
-        return "I’m sorry, I couldn’t process your request at the moment. Please try again later."
+        return "I'm sorry, I couldn't process your request at the moment. Please try again later."
+
+def get_agent_scratchpad(messages):
+    """
+    Extracts tool calls and tool outputs to form the agent_scratchpad.
+    This is critical for ReAct to function properly.
+
+    Args:
+        messages: List of conversation messages
+
+    Returns:
+        List of AI and Tool messages for the scratchpad
+    """
+    scratchpad = []
+    for msg in messages:
+        scratchpad.append(msg)
+    return scratchpad

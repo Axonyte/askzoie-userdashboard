@@ -34,7 +34,7 @@ async def query(bot_id: str, question: str = Form(...)):
     Ask a question for a given bot (retrieval + OpenAI answer) - returns JSON
     """
     try:
-        answer = generate_answer(bot_id, question, top_k=3, strict_mode=True)
+        answer = generate_answer(bot_id, question, top_k=3)
 
         return {
             "question": question,
