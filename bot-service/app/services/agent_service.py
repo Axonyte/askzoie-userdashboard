@@ -37,11 +37,13 @@ def parse_llm_output(output: str):
     return {"type": "other", "raw": output}
 
 
-def generate_answer(bot_id: str, query: str, top_k: int = 3) -> str:
+def generate_answer(request) -> str:
     """
     Generate final answer with OpenAI, executing tools if requested.
     """
     scratchpad = ""
+
+    query = request.state.question
 
     tool_names = [t["name"] for t in tools]
     tool_descriptions = "\n".join([f"{t['name']}: {t['description']}" for t in tools])
@@ -78,7 +80,10 @@ def generate_answer(bot_id: str, query: str, top_k: int = 3) -> str:
             if tool:
                 try:
                     # tool funcs expect dict input
-                    observation = tool["func"](action_input)
+                    observation = tool["func"]({ 
+                        "input": action_input,
+                        "req": request
+                    })
                 except Exception as e:
                     observation = f"Error while executing tool {action}: {e}"
 

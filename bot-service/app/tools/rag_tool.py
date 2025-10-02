@@ -1,16 +1,9 @@
 import os
-import io
-import uuid
 from typing import List, Tuple, Optional
-import re
 
-
-import html
 from sentence_transformers import SentenceTransformer
-from PyPDF2 import PdfReader
 from dotenv import load_dotenv
-from pinecone import Pinecone, ServerlessSpec
-from openai import OpenAI
+from pinecone import Pinecone
 
 load_dotenv()
 
@@ -37,13 +30,21 @@ def get_model() -> SentenceTransformer:
         _model = SentenceTransformer(EMBED_MODEL)
     return _model
 
-def retrieve_chunks(bot_id: str, query: str, top_k: int = 3) -> List[Tuple[str, float]]:
+def rag_tool(obj) -> List[Tuple[str, float]]:
+    req = obj.req
+
     model = get_model()
-    q_emb = model.encode([query], convert_to_numpy=True)[0]
+    q_emb = model.encode([question], convert_to_numpy=True)[0]
+
+    top_k = 3
+
+    bot_id = req.state.bot_id
+    question = req.state.question
 
     res = index.query(
         vector=q_emb.tolist(),
         top_k=top_k,
+        SIMILARITY_THRESHOLD=0.3,
         filter={"bot_id": {"$eq": bot_id}},
         include_metadata=True,
     )
@@ -51,4 +52,6 @@ def retrieve_chunks(bot_id: str, query: str, top_k: int = 3) -> List[Tuple[str, 
     results = []
     for match in res["matches"]:
         results.append((match["metadata"]["chunk"], float(match["score"])))
+
+    print( f"RAG Tool found {len(results)} results for bot_id={bot_id}, question='{question}'" )
     return results

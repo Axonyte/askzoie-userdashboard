@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Request
 
 from app.services.agent_service import generate_answer
 
@@ -27,14 +27,20 @@ async def upload_pdfs(bot_id: str, files: List[UploadFile] = File(...)):
 
 
 @router.post("/query/{bot_id}")
-async def query(bot_id: str, question: str = Form(...)):
+async def query(request: Request, bot_id: str, question: str = Form(...)):
     """
     Ask a question for a given bot (retrieval + OpenAI answer) - returns JSON
     """
     try:
-        answer = generate_answer(bot_id, question, top_k=3)
+        # store in per-request state
+        request.state.bot_id = bot_id  
+        request.state.question = question 
+
+        # use the bot_id and question to generate answer
+        answer = generate_answer(request)
 
         return {
+            "bot_id": bot_id,
             "question": question,
             "answer": answer,
         }
