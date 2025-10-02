@@ -1,12 +1,10 @@
 from typing import List
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
-from fastapi.responses import HTMLResponse
+
+from app.services.agent_service import generate_answer
 
 from app.services.rag_service import (
     add_pdf_to_bot_store,
-    retrieve,
-    is_within_scope,
-    generate_answer,        # existing text generator
 )
 
 router = APIRouter(prefix="/rag", tags=["RAG"])
