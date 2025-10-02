@@ -111,67 +111,6 @@ def add_pdf_to_bot_store(bot_id: str, pdf_bytes: bytes):
     return build_bot_store_from_pdf_bytes(bot_id, pdf_bytes)
 
 
-def retrieve(bot_id: str, query: str, top_k: int = 3) -> List[Tuple[str, float]]:
-    model = get_model()
-    q_emb = model.encode([query], convert_to_numpy=True)[0]
-
-    res = index.query(
-        vector=q_emb.tolist(),
-        top_k=top_k,
-        filter={"bot_id": {"$eq": bot_id}},
-        include_metadata=True,
-    )
-
-    results = []
-    for match in res["matches"]:
-        results.append((match["metadata"]["chunk"], float(match["score"])))
-    return results
-
-
-def is_within_scope(ranked: List[Tuple[str, float]], threshold: float = SIMILARITY_THRESHOLD) -> bool:
-    if not ranked:
-        return False
-    top_sim = ranked[0][1]
-    return top_sim >= threshold
-
-
-# --- NEW FUNCTION ---
-# def generate_answer(bot_id: str, query: str, top_k: int = 3) -> str:
-#     """
-#     Retrieve chunks and generate final answer with OpenAI.
-#     """
-#     # ranked = retrieve(bot_id, query, top_k=top_k)
-
-#     # # if chunks found
-#     # context = "\n\n".join([chunk for chunk, score in ranked])
-
-#     prompt = template.format(
-#         tools=tools,
-#         tool_names=["weather"],
-#         chat_history="Human: hi i am hamza \nAI: Hello! How can I assist you today?",
-#         input=query,
-#         agent_scratchpad=get_agent_scratchpad([])
-#     )
-
-
-#     response = client.chat.completions.create(
-#         model="gpt-4o-mini",
-#         messages=[
-#             {"role": "system", "content": "You are a helpful customer care bot."},
-#             {"role": "user", "content": prompt},
-#         ],
-#         temperature=0.7,
-#     )
-
-#     try:
-#         return response.choices[0].message.content.strip()
-#     except Exception:
-#         return "I'm sorry, I couldn't process your request at the moment. Please try again later."
-    
-
-# -------------------------------
-# Parser
-# -------------------------------
 def parse_llm_output(output: str):
     """
     Parse the LLM output into either an action or final answer.
