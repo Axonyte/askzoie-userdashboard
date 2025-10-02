@@ -236,7 +236,7 @@ def generate_answer(bot_id: str, query: str, top_k: int = 3) -> str:
             if tool:
                 try:
                     # tool funcs expect dict input
-                    observation = tool["func"]({"country": action_input})
+                    observation = tool["func"](action_input)
                 except Exception as e:
                     observation = f"Error while executing tool {action}: {e}"
 
