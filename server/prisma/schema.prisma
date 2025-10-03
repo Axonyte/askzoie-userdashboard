@@ -82,6 +82,16 @@ model BotProfile {
     // Relations
     persona BotPersona @relation(fields: [personaId], references: [id])
     user    User       @relation(fields: [userId], references: [id])
+    RAGDocs RAGDocs[]
+}
+
+model RAGDocs {
+    id       String     @id @default(uuid())
+    filename String
+    botId    String
+    docId    String
+    chunks   Int
+    Bot      BotProfile @relation(fields: [botId], references: [id])
 }
 
 model OTP {

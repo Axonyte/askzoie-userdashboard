@@ -11,6 +11,8 @@ import { TBotPayload } from "./types/BotPayload";
 import { AddPersonaDto } from "./dto/add-persona.dto";
 import { R2storageService } from "src/shared/services/r2storage/r2storage.service";
 import { EditBotProfileDto } from "./dto/edit-bot-config.dto";
+import axios from "axios";
+import FormData from "form-data";
 
 @Injectable()
 export class BotService {
@@ -153,8 +155,8 @@ export class BotService {
         }
 
         const botProfile = await this.prisma.botProfile.update({
-            where:{
-                id:dto.profileId
+            where: {
+                id: dto.profileId,
             },
             data: {
                 userId,
@@ -241,6 +243,58 @@ export class BotService {
         );
 
         return { refreshToken };
+    }
+
+    async uploadPDFs(
+        userId: string,
+        botId: string,
+        files: Express.Multer.File[]
+    ) {
+        // ✅ Your custom logic (auth, validation, DB ops, etc.)
+        console.log("User:", userId, "Bot:", botId);
+
+        const formData = new FormData();
+
+        files.forEach((file) => {
+            // file.buffer is available because Multer keeps it in memory
+            formData.append("files", file.buffer, file.originalname);
+        });
+
+        const response = await axios.post(
+            `${this.configService.get("BOT_SERVICE_URL")}/api/v1/rag/upload/${botId}`,
+            formData,
+            {
+                headers: {
+                    ...formData.getHeaders(),
+                },
+            }
+        );
+
+        if (response.status === 200) {
+            await Promise.all(
+                response.data.results.map((result: any) =>
+                    this.prisma.rAGDocs.create({
+                        data: {
+                            filename: result.filename,
+                            botId: result.bot_id,
+                            docId: result.doc_id,
+                            chunks: result.chunks,
+                        },
+                    })
+                )
+            );
+        }
+
+        return response.data;
+    }
+
+    async getRAGDocs(botId: string) {
+        const docs = await this.prisma.rAGDocs.findMany({
+            where: {
+                botId,
+            },
+        });
+        return docs;
     }
 
     async refreshAccessToken(refreshToken: string) {

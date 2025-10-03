@@ -7,6 +7,7 @@ import {
     Patch,
     Post,
     UploadedFile,
+    UploadedFiles,
     UseGuards,
     UseInterceptors,
 } from "@nestjs/common";
@@ -16,7 +17,7 @@ import { SaveBotProfileDto } from "./dto/save-bot-config.dto";
 import { BotGuard } from "src/guards/bot.guard";
 import { BotProfileId } from "src/decorators/bot-profile-id.decorator";
 import { AddPersonaDto } from "./dto/add-persona.dto";
-import { FileInterceptor } from "@nestjs/platform-express";
+import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
 import { multerImageOptions } from "src/config/multer/MulterConfig";
 import { EditBotProfileDto } from "./dto/edit-bot-config.dto";
 
@@ -125,6 +126,25 @@ export class BotController {
             userMessage: message ?? "User message",
             botMessage: "message from bot",
         };
+    }
+
+    @Post("upload/:botId")
+    @UseInterceptors(FilesInterceptor("files"))
+    async uploadFiles(
+        @Param("botId") botId: string,
+        @UploadedFiles() files: Express.Multer.File[],
+        @UserId() userId: string
+    ) {
+        // ✅ run your custom logic with userId, botId, files
+        return this.botService.uploadPDFs(userId, botId, files);
+    }
+    
+    @Get("rag-docs/:botId")
+    async getRAGDocs(
+        @Param("botId") botId: string,
+        @UserId() userId: string // your custom decorator
+    ) {
+        return this.botService.getRAGDocs(botId);
     }
 
     @Get("auth")

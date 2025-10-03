@@ -31,6 +31,7 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import ImageSignedUrlInjector from '@/components/signed-url-injector'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { EditAssistantModal } from './components/EditAssistantModal'
+import { RagDocsSection } from './components/RagDocsSection'
 
 type BotPersona = {
     id: string
@@ -355,6 +356,8 @@ function AssistantDetails({ botId }: BotDetailsProps) {
                         </CardContent>
                     </Card>
 
+                    <RagDocsSection botId={botId} />
+                    
                     {/* Timestamps */}
                     <Card>
                         <CardHeader>
