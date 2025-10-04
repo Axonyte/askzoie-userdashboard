@@ -37,8 +37,11 @@ def get_model() -> SentenceTransformer:
         _model = SentenceTransformer(EMBED_MODEL)
     return _model
 
-def retrieve_chunks(bot_id: str, query: str, top_k: int = 3) -> List[Tuple[str, float]]:
+def retrieve_chunks(query: str) -> List[Tuple[str, float]]:
+    print("hererehrbdkbsadbasdhasbdh")
     model = get_model()
+    top_k=1
+    bot_id="213d6698-788a-4e7a-bc73-9b57157d6fb5"
     q_emb = model.encode([query], convert_to_numpy=True)[0]
 
     res = index.query(
@@ -51,4 +54,6 @@ def retrieve_chunks(bot_id: str, query: str, top_k: int = 3) -> List[Tuple[str, 
     results = []
     for match in res["matches"]:
         results.append((match["metadata"]["chunk"], float(match["score"])))
+    print("---------------------------",results)
+    # return [("The price of nike 413 shoes is $29999",0.102422237)]
     return results
